@@ -1,59 +1,188 @@
-# SmartstockFrontend
+# 📦 SmartStock Frontend
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 22.0.3.
+Frontend del sistema **SmartStock** para la gestión inteligente de inventario, alertas y depreciación de productos. Desarrollado con **Angular 22**, **Angular Material**, **Tailwind CSS** y conectado a un backend Spring Boot a través de un BFF.
 
-## Development server
+---
 
-To start a local development server, run:
+## 🚀 Tecnologías
+
+| Tecnología | Versión | Descripción |
+|---|---|---|
+| Angular | 22 | Framework principal |
+| Angular Material | 22 | Componentes UI (mat-table, mat-card, mat-icon, etc.) |
+| Tailwind CSS | 4.3 | Utilidades de estilo |
+| Vitest | 4.x | Framework de testing unitario |
+| TypeScript | 5.x | Lenguaje de desarrollo |
+
+---
+
+## 📁 Estructura del Proyecto
+
+```
+src/app/
+├── core/
+│   ├── guards/
+│   │   └── auth.guard.ts            # Guard de autenticación (protege rutas)
+│   ├── interceptors/
+│   │   └── auth.interceptor.ts      # Interceptor HTTP (JWT + X-Comercio-ID)
+│   ├── models/
+│   │   └── index.ts                 # Modelos/interfaces compartidos
+│   └── services/
+│       ├── api.service.ts           # Servicio de consumo de API (dashboard, productos, alertas)
+│       └── auth.service.ts          # Servicio de autenticación (login, logout, token)
+├── features/
+│   ├── admin/
+│   │   └── admin-global.component   # Panel de administración global
+│   ├── alerts/
+│   │   ├── alerts.component         # Gestión de alertas pendientes
+│   │   └── config.component         # Configuración de reglas de depreciación
+│   ├── dashboard/
+│   │   └── dashboard.component      # Dashboard principal con resumen consolidado
+│   ├── infra/
+│   │   └── infra-diag.component     # Diagnóstico de infraestructura
+│   ├── inventory/
+│   │   └── inventory.component      # Gestión de inventario/productos
+│   └── login/
+│       └── login.component          # Pantalla de inicio de sesión
+├── shared/
+│   └── layout/
+│       ├── layout.component         # Layout principal (sidebar + navbar + contenido)
+│       ├── navbar/                  # Barra de navegación superior
+│       └── sidebar/                 # Menú lateral de navegación
+├── app.config.ts                    # Configuración de la app (providers, interceptors)
+├── app.routes.ts                    # Definición de rutas
+└── app.ts                           # Componente raíz
+```
+
+---
+
+## 🔧 Requisitos Previos
+
+- **Node.js** >= 18
+- **npm** >= 9
+- **Angular CLI** >= 22
+- **Backend SmartStock** corriendo en `http://localhost:8080` (BFF/Spring Boot)
+
+---
+
+## ⚙️ Instalación
+
+```bash
+# Clonar el repositorio
+git clone <url-del-repositorio>
+cd smartstock-frontend
+
+# Instalar dependencias
+npm install
+```
+
+---
+
+## 🖥️ Servidor de Desarrollo
 
 ```bash
 ng serve
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+La aplicación estará disponible en `http://localhost:4200/`. Se recarga automáticamente al modificar archivos fuente.
 
-## Code scaffolding
+> El proxy (`proxy.conf.json`) redirige las peticiones `/api` al BFF en `http://localhost:8080`.
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+---
 
-```bash
-ng generate component component-name
-```
-
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
-```bash
-ng generate --help
-```
-
-## Building
-
-To build the project run:
+## 🏗️ Build de Producción
 
 ```bash
 ng build
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+Los artefactos se generan en el directorio `dist/`.
 
-## Running unit tests
+---
 
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
+## 🧪 Tests Unitarios
 
 ```bash
-ng e2e
+# Ejecutar tests
+npx vitest run
+
+# Ejecutar tests con cobertura
+npx vitest run --coverage
+
+# Ejecutar tests en modo watch
+npx vitest
 ```
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+### Cobertura Actual
 
-## Additional Resources
+| Métrica | Cobertura |
+|---|---|
+| Statements | 98.69% |
+| Functions | 96.36% |
+| Lines | 100% |
+| Branches | 69.23% |
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+- **16 archivos de test**
+- **50 tests** pasando al 100%
+
+---
+
+## 🗺️ Rutas de la Aplicación
+
+| Ruta | Componente | Protegida | Descripción |
+|---|---|---|---|
+| `/login` | LoginComponent | ❌ | Inicio de sesión |
+| `/dashboard` | DashboardComponent | ✅ | Panel principal con resumen |
+| `/inventory` | InventoryComponent | ✅ | Gestión de productos |
+| `/alerts` | AlertsComponent | ✅ | Alertas pendientes |
+| `/config` | ConfigComponent | ✅ | Reglas de depreciación |
+| `/admin` | AdminGlobalComponent | ✅ | Administración global |
+| `/infra` | InfraDiagComponent | ✅ | Diagnóstico de infraestructura |
+
+Las rutas protegidas requieren autenticación JWT. Si el usuario no está autenticado, se redirige a `/login`.
+
+---
+
+## 🔌 Integración con Backend
+
+### Proxy de Desarrollo
+
+El archivo `proxy.conf.json` redirige las peticiones al BFF:
+
+```json
+{
+  "/api": {
+    "target": "http://localhost:8080",
+    "secure": false,
+    "changeOrigin": true
+  }
+}
+```
+
+### Endpoints Consumidos
+
+| Método | Endpoint | Descripción |
+|---|---|---|
+| `POST` | `/api/auth/login` | Autenticación de usuario |
+| `GET` | `/api/dashboard` | Datos consolidados del dashboard |
+| `GET` | `/api/productos` | Listado de productos |
+| `GET` | `/api/alertas` | Listado de alertas |
+| `PATCH` | `/api/alertas/{id}/atender` | Marcar alerta como atendida |
+
+### Autenticación
+
+- El **AuthService** gestiona login/logout y almacena el token JWT en `localStorage` (`ss_token`).
+- El **authInterceptor** inyecta automáticamente los headers `Authorization: Bearer <token>` y `X-Comercio-ID: 1` en cada petición (excepto `/auth/login`).
+- El **authGuard** protege las rutas verificando la existencia del token.
+
+---
+
+## 📝 Scripts Disponibles
+
+| Comando | Descripción |
+|---|---|
+| `ng serve` | Inicia servidor de desarrollo en puerto 4200 |
+| `ng build` | Genera build de producción |
+| `npx vitest run` | Ejecuta tests unitarios |
+| `npx vitest run --coverage` | Ejecuta tests con reporte de cobertura |
+| `ng generate component <nombre>` | Genera un nuevo componente |

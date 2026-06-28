@@ -1,0 +1,138 @@
+<div *ngIf="loading" class="flex items-center justify-center h-64">
+  <mat-spinner diameter="40"></mat-spinner>
+</div>
+<div *ngIf="error" class="p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 font-medium flex items-center gap-2">
+  <mat-icon class="text-red-600">error</mat-icon>
+  {{ error }}
+</div>
+<div class="space-y-6" *ngIf="!loading && !error">
+  <div class="flex flex-col">
+    <div class="flex items-center gap-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">
+      <span>Configuración</span>
+      <span>/</span>
+      <span class="text-blue-500">Reglas Operativas</span>
+    </div>
+    <h1 class="text-3xl font-bold text-gray-900 uppercase">Configuración Operativa</h1>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="lg:col-span-2 space-y-6">
+      <mat-card class="!shadow-sm overflow-hidden">
+        <div class="p-6 border-b flex justify-between items-center">
+          <div>
+            <h3 class="font-bold text-gray-900 uppercase">Configuración de Descuentos Automáticos</h3>
+            <p class="text-xs text-gray-500 mt-1">Gestione las reglas de precios dinámicos basadas en la proximidad de la fecha de vencimiento.</p>
+          </div>
+          <button mat-flat-button class="!bg-blue-600 !text-white !font-bold !text-xs !shadow-lg !shadow-blue-100">
+            <mat-icon class="!text-lg mr-1">add</mat-icon> Nueva Regla
+          </button>
+        </div>
+        <div class="overflow-x-auto">
+          <table mat-table [dataSource]="rules" class="w-full">
+            <ng-container matColumnDef="id">
+              <th mat-header-cell *matHeaderCellDef class="!px-6 !py-4 !text-gray-400 !font-bold !text-[10px] !uppercase !bg-gray-50/50">ID</th>
+              <td mat-cell *matCellDef="let rule" class="!px-6 !py-4 text-gray-400 font-bold text-xs">#{{rule.id}}</td>
+            </ng-container>
+            <ng-container matColumnDef="diasCriticosMin">
+              <th mat-header-cell *matHeaderCellDef class="!px-6 !py-4 !text-gray-400 !font-bold !text-[10px] !uppercase !bg-gray-50/50">Días Antes de Vencer</th>
+              <td mat-cell *matCellDef="let rule" class="!px-6 !py-4 font-bold text-gray-700 text-xs">
+                <mat-icon class="!text-sm !w-4 !h-4 mr-1 align-middle">calendar_today</mat-icon> {{rule.diasCriticosMin}} días
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="porcentajeDescuento">
+              <th mat-header-cell *matHeaderCellDef class="!px-6 !py-4 !text-gray-400 !font-bold !text-[10px] !uppercase !bg-gray-50/50">Descuento Automático</th>
+              <td mat-cell *matCellDef="let rule" class="!px-6 !py-4 font-black text-gray-900 text-base">{{rule.porcentajeDescuento}}%</td>
+            </ng-container>
+            <ng-container matColumnDef="activa">
+              <th mat-header-cell *matHeaderCellDef class="!px-6 !py-4 !text-gray-400 !font-bold !text-[10px] !uppercase !bg-gray-50/50">Estado</th>
+              <td mat-cell *matCellDef="let rule" class="!px-6 !py-4">
+                <mat-chip [ngClass]="rule.activa === 1 ? '!bg-green-500 !text-white' : '!bg-gray-300 !text-white'" class="!text-[9px] !font-black !uppercase !min-h-5">
+                  {{ rule.activa === 1 ? 'ACTIVO' : 'INACTIVO' }}
+                </mat-chip>
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="acciones">
+              <th mat-header-cell *matHeaderCellDef class="!px-6 !py-4 !text-gray-400 !font-bold !text-[10px] !uppercase !bg-gray-50/50 !text-right">Acciones</th>
+              <td mat-cell *matCellDef="let rule" class="!px-6 !py-4 !text-right text-gray-400">...</td>
+            </ng-container>
+            <tr mat-header-row *matHeaderRowDef="['id', 'diasCriticosMin', 'porcentajeDescuento', 'activa', 'acciones']"></tr>
+            <tr mat-row *matRowDef="let row; columns: ['id', 'diasCriticosMin', 'porcentajeDescuento', 'activa', 'acciones']" class="hover:bg-gray-50/50 transition-colors"></tr>
+          </table>
+        </div>
+      </mat-card>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="bg-blue-50/30 p-4 rounded-xl border border-blue-100 flex gap-3">
+          <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+            <mat-icon class="text-blue-500">info</mat-icon>
+          </div>
+          <div>
+            <p class="text-xs font-bold text-gray-900">Prioridad de Reglas</p>
+            <p class="text-[10px] text-gray-500 leading-tight mt-1">Las reglas con menos días para vencer tienen prioridad sobre las de mayor plazo.</p>
+          </div>
+        </div>
+        <div class="bg-green-50/30 p-4 rounded-xl border border-green-100 flex gap-3">
+          <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+            <mat-icon class="text-green-500">percent</mat-icon>
+          </div>
+          <div>
+            <p class="text-xs font-bold text-gray-900">Cálculo de Margen</p>
+            <p class="text-[10px] text-gray-500 leading-tight mt-1">El sistema bloquea descuentos si el margen proyectado cae por debajo del 5%.</p>
+          </div>
+        </div>
+        <div class="bg-orange-50/30 p-4 rounded-xl border border-orange-100 flex gap-3">
+          <div class="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+            <mat-icon class="text-orange-500">notifications</mat-icon>
+          </div>
+          <div>
+            <p class="text-xs font-bold text-gray-900">Alertas de Expiración</p>
+            <p class="text-[10px] text-gray-500 leading-tight mt-1">Notificaciones diarias automáticas a operarios para productos en Días Críticos.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="space-y-6">
+      <mat-card class="!shadow-sm">
+        <mat-card-content class="p-6">
+          <div class="flex items-center gap-2 mb-6">
+            <mat-icon class="text-blue-500">store</mat-icon>
+            <h3 class="font-bold text-gray-900 uppercase">Data Tienda</h3>
+          </div>
+          <p class="text-[11px] text-gray-500 mb-6 font-medium leading-relaxed">Parámetros operativos base para este local comercial.</p>
+
+          <div class="space-y-4">
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Razón Social</mat-label>
+              <input matInput type="text" value="SMARTSTOCK CHILE LTDA." readonly>
+            </mat-form-field>
+            <div>
+              <div class="flex justify-between items-center mb-2">
+                <label class="block text-[10px] font-bold text-gray-400 uppercase">Días Pre-Alerta</label>
+                <mat-icon class="!text-gray-300 !text-sm cursor-help">info</mat-icon>
+              </div>
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-icon matPrefix class="text-gray-400">calendar_today</mat-icon>
+                <input matInput type="number" value="7">
+              </mat-form-field>
+            </div>
+            <div>
+              <div class="flex justify-between items-center mb-2">
+                <label class="block text-[10px] font-bold text-gray-400 uppercase">Días Críticos de Margen</label>
+                <mat-icon class="!text-red-400 !text-sm">warning</mat-icon>
+              </div>
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-icon matPrefix class="text-gray-400">percent</mat-icon>
+                <input matInput type="number" value="3">
+              </mat-form-field>
+            </div>
+          </div>
+
+          <button mat-flat-button class="!w-full !mt-8 !bg-blue-600 !text-white !py-3 !rounded-xl !font-black !text-[10px] !uppercase !tracking-widest !shadow-lg !shadow-blue-100 hover:!bg-blue-700">
+            <mat-icon class="!text-sm mr-1">save</mat-icon> Actualizar Parámetros Corporativos
+          </button>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+</div>

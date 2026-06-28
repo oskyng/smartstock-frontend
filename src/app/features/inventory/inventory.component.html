@@ -1,0 +1,126 @@
+<div *ngIf="loading" class="flex items-center justify-center h-64">
+  <mat-spinner diameter="40"></mat-spinner>
+</div>
+<div *ngIf="error" class="p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 font-medium flex items-center gap-2">
+  <mat-icon class="text-red-600">error</mat-icon>
+  {{ error }}
+</div>
+<div class="space-y-6" *ngIf="!loading && !error">
+  <div class="flex justify-between items-end">
+    <div>
+      <h1 class="text-3xl font-bold text-gray-900 uppercase">Mantenedor de Inventario</h1>
+      <p class="text-gray-500">Gestione su catálogo de productos y el control detallado de lotes activos.</p>
+    </div>
+    <button mat-flat-button class="!bg-green-500 !text-white !font-bold !text-sm !rounded-lg !shadow-sm hover:!bg-green-600">
+      <mat-icon class="!text-lg mr-1">add</mat-icon> Nuevo Registro
+    </button>
+  </div>
+
+  <mat-card class="!shadow-sm overflow-hidden">
+    <div class="p-4 border-b flex justify-between items-center bg-gray-50/50">
+      <div class="flex bg-gray-100 p-1 rounded-lg">
+        <button mat-button class="!px-6 !py-1.5 !bg-white !text-gray-900 !font-bold !text-xs !rounded-md !shadow-sm !min-w-0">Productos</button>
+        <button mat-button class="!px-6 !py-1.5 !text-gray-500 !font-bold !text-xs !min-w-0">Lotes Activos</button>
+      </div>
+      <div class="flex gap-3">
+        <mat-form-field appearance="outline" class="!w-64 !text-xs" subscriptSizing="dynamic">
+          <mat-icon matPrefix class="text-gray-400">search</mat-icon>
+          <input matInput type="text" placeholder="Buscar por nombre o SKU...">
+        </mat-form-field>
+        <button mat-icon-button class="!border !border-gray-200 !rounded-lg text-gray-400 hover:!bg-white">
+          <mat-icon>schedule</mat-icon>
+        </button>
+      </div>
+    </div>
+    <div class="overflow-x-auto">
+      <table mat-table [dataSource]="products" class="w-full">
+        <ng-container matColumnDef="codigoBarra">
+          <th mat-header-cell *matHeaderCellDef class="!px-6 !py-4 !text-gray-400 !font-bold !text-[11px] !uppercase">Cód. Barras</th>
+          <td mat-cell *matCellDef="let product" class="!px-6 !py-4 text-xs text-gray-500">{{product.codigoBarra}}</td>
+        </ng-container>
+        <ng-container matColumnDef="nombre">
+          <th mat-header-cell *matHeaderCellDef class="!px-6 !py-4 !text-gray-400 !font-bold !text-[11px] !uppercase">Nombre Artículo</th>
+          <td mat-cell *matCellDef="let product" class="!px-6 !py-4 font-bold text-gray-900">{{product.nombre}}</td>
+        </ng-container>
+        <ng-container matColumnDef="nombreCategoria">
+          <th mat-header-cell *matHeaderCellDef class="!px-6 !py-4 !text-gray-400 !font-bold !text-[11px] !uppercase !text-center">Categoría</th>
+          <td mat-cell *matCellDef="let product" class="!px-6 !py-4 !text-center">
+            <mat-chip class="!text-xs !bg-gray-100 !text-gray-600 !border !border-gray-200">{{product.nombreCategoria}}</mat-chip>
+          </td>
+        </ng-container>
+        <ng-container matColumnDef="precioBase">
+          <th mat-header-cell *matHeaderCellDef class="!px-6 !py-4 !text-gray-400 !font-bold !text-[11px] !uppercase !text-center">Stock</th>
+          <td mat-cell *matCellDef="let product" class="!px-6 !py-4 !text-center font-bold text-gray-900">${{product.precioBase}}</td>
+        </ng-container>
+        <ng-container matColumnDef="estado">
+          <th mat-header-cell *matHeaderCellDef class="!px-6 !py-4 !text-gray-400 !font-bold !text-[11px] !uppercase !text-center">Estado</th>
+          <td mat-cell *matCellDef="let product" class="!px-6 !py-4 !text-center">
+            <mat-chip class="!text-[10px] !font-bold !text-green-600 !bg-green-50 !border !border-green-200">
+              <mat-icon class="!text-xs !w-3 !h-3 mr-1">circle</mat-icon> Activo
+            </mat-chip>
+          </td>
+        </ng-container>
+        <ng-container matColumnDef="acciones">
+          <th mat-header-cell *matHeaderCellDef class="!px-6 !py-4 !text-gray-400 !font-bold !text-[11px] !uppercase !text-right">Acciones</th>
+          <td mat-cell *matCellDef="let product" class="!px-6 !py-4 !text-right">
+            <div class="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+              <button mat-icon-button class="!w-8 !h-8 text-blue-500 hover:!bg-blue-50">
+                <mat-icon class="!text-lg">edit</mat-icon>
+              </button>
+              <button mat-icon-button class="!w-8 !h-8 text-red-500 hover:!bg-red-50">
+                <mat-icon class="!text-lg">delete</mat-icon>
+              </button>
+            </div>
+          </td>
+        </ng-container>
+        <tr mat-header-row *matHeaderRowDef="['codigoBarra', 'nombre', 'nombreCategoria', 'precioBase', 'estado', 'acciones']"></tr>
+        <tr mat-row *matRowDef="let row; columns: ['codigoBarra', 'nombre', 'nombreCategoria', 'precioBase', 'estado', 'acciones']" class="hover:bg-gray-50 transition-colors group"></tr>
+      </table>
+    </div>
+    <div class="p-4 border-t flex justify-between items-center bg-gray-50/50">
+      <p class="text-[11px] text-gray-400 font-bold uppercase">Mostrando {{ products.length }} artículos registrados</p>
+      <div class="flex gap-1">
+        <button mat-stroked-button class="!px-3 !py-1.5 !text-[11px] !font-bold !text-gray-400 !min-w-0">Anterior</button>
+        <button mat-flat-button class="!px-3 !py-1.5 !text-[11px] !font-bold !bg-blue-50 !text-blue-600 !border !border-blue-600 !min-w-0">1</button>
+        <button mat-stroked-button class="!px-3 !py-1.5 !text-[11px] !font-bold !text-gray-400 !min-w-0">2</button>
+        <button mat-stroked-button class="!px-3 !py-1.5 !text-[11px] !font-bold !text-gray-400 !min-w-0">Siguiente</button>
+      </div>
+    </div>
+  </mat-card>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <mat-card class="!shadow-sm flex items-center gap-4">
+      <mat-card-content class="flex items-center gap-4 p-6">
+        <div class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center border border-blue-100 shadow-inner">
+          <mat-icon class="text-blue-500">inventory_2</mat-icon>
+        </div>
+        <div>
+          <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Total Skus</p>
+          <p class="text-2xl font-bold text-gray-900">{{ products.length }}</p>
+        </div>
+      </mat-card-content>
+    </mat-card>
+    <mat-card class="!shadow-sm flex items-center gap-4">
+      <mat-card-content class="flex items-center gap-4 p-6">
+        <div class="w-12 h-12 bg-red-50 rounded-xl flex items-center justify-center border border-red-100 shadow-inner">
+          <mat-icon class="text-red-500">warning</mat-icon>
+        </div>
+        <div>
+          <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Bajo Stock</p>
+          <p class="text-2xl font-bold text-gray-900">12</p>
+        </div>
+      </mat-card-content>
+    </mat-card>
+    <mat-card class="!shadow-sm flex items-center gap-4">
+      <mat-card-content class="flex items-center gap-4 p-6">
+        <div class="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center border border-green-100 shadow-inner">
+          <mat-icon class="text-green-500">trending_up</mat-icon>
+        </div>
+        <div>
+          <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Último Movimiento</p>
+          <p class="text-lg font-bold text-gray-900">Hace 5 min</p>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

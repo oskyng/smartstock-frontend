@@ -1,0 +1,65 @@
+<div class="min-h-screen bg-gray-800 flex flex-col items-center justify-center p-6 relative overflow-hidden">
+  <!-- Decoración de fondo -->
+  <div class="absolute top-0 left-0 w-full h-1 bg-blue-500"></div>
+
+  <div class="mb-12 flex items-center gap-3">
+    <div class="w-10 h-10 bg-blue-500 rounded flex items-center justify-center text-white font-bold text-xl">S</div>
+    <h1 class="text-3xl font-bold text-white tracking-widest italic">SMARTSTOCK</h1>
+  </div>
+
+  <mat-card class="w-full max-w-md !rounded-2xl !shadow-2xl !border-0">
+    <mat-card-content class="p-8">
+      <div class="text-center mb-8">
+        <h2 class="text-2xl font-bold text-gray-900">Iniciar Sesión</h2>
+        <p class="text-sm text-gray-500 mt-2">Ingrese sus credenciales para acceder al panel de control.</p>
+      </div>
+
+      <form (submit)="onLogin()" class="space-y-6">
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Usuario / Email</mat-label>
+          <mat-icon matPrefix class="text-gray-400">person</mat-icon>
+          <input matInput type="email" [(ngModel)]="email" name="email" placeholder="ejemplo@smartstock.com">
+        </mat-form-field>
+
+        <div>
+          <div class="flex justify-end mb-1">
+            <a href="#" class="text-[10px] font-bold text-blue-500 hover:underline">¿Olvidó su contraseña?</a>
+          </div>
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Contraseña</mat-label>
+            <mat-icon matPrefix class="text-gray-400">lock</mat-icon>
+            <input matInput type="password" [(ngModel)]="password" name="password" placeholder="••••••••">
+            <mat-icon matSuffix class="text-gray-400 cursor-pointer">visibility</mat-icon>
+          </mat-form-field>
+        </div>
+
+        <mat-checkbox class="!text-xs !font-bold text-gray-600">Recordar mi sesión en este dispositivo</mat-checkbox>
+
+        <div *ngIf="errorMessage" class="p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700 font-medium flex items-center gap-2">
+          <mat-icon class="!text-red-600 !text-lg">error</mat-icon>
+          {{ errorMessage }}
+        </div>
+
+        <button mat-flat-button color="primary" type="submit" [disabled]="loading" class="!w-full !py-4 !rounded-xl !shadow-lg !shadow-blue-200 !font-bold !text-base !bg-blue-500 hover:!bg-blue-600 disabled:!opacity-50">
+          <mat-spinner *ngIf="loading" diameter="20" class="inline-block mr-2"></mat-spinner>
+          {{ loading ? 'Ingresando...' : 'Ingresar al Sistema' }}
+        </button>
+      </form>
+
+      <div class="mt-8 p-4 bg-blue-50 rounded-xl border border-blue-100 flex gap-3">
+        <mat-icon class="text-blue-500">info</mat-icon>
+        <p class="text-[10px] text-blue-700 leading-normal">Este sistema está protegido. El acceso no autorizado está estrictamente prohibido y monitoreado.</p>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <div class="mt-12 flex gap-6 text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+    <a href="#" class="hover:text-white transition-colors">Términos de Servicio</a>
+    <span>|</span>
+    <a href="#" class="hover:text-white transition-colors">Privacidad</a>
+    <span>|</span>
+    <a href="#" class="hover:text-white transition-colors">Centro de Ayuda</a>
+  </div>
+
+  <p class="mt-12 text-[10px] text-gray-600 font-bold uppercase tracking-widest">v1.0.0 (2026) © Duoc UC Online</p>
+</div>
