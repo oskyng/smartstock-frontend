@@ -1,0 +1,140 @@
+<div style="padding: 24px; font-family: 'Segoe UI', sans-serif; max-width: 1200px; margin: 0 auto;" class="!p-4 md:!p-6">
+  <h1 style="font-size: 1.75rem; font-weight: 800; color: #1e293b; margin-bottom: 8px;">
+    Dashboard Administrador del Sistema
+  </h1>
+  <p style="color: #64748b; font-size: 0.875rem; margin-bottom: 32px;">
+    Panel de control global — Gestión Multi-tenant y Monitoreo del Ecosistema SmartStock
+  </p>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
+
+    <!-- Panel A: Gestión de Comercios -->
+    <div style="background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 28px;">
+      <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px;">
+        <div style="width: 40px; height: 40px; background: #3b82f6; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 1.1rem;">+</div>
+        <div>
+          <h2 style="font-size: 1.1rem; font-weight: 800; color: #1e293b; margin: 0;">
+            {{ editandoId !== null ? 'Editar Comercio' : 'Registrar Comercio' }}
+          </h2>
+          <p style="font-size: 0.75rem; color: #94a3b8; margin: 0;">Alta y gestión de cadenas de tiendas (Multi-tenant Onboarding)</p>
+        </div>
+      </div>
+
+      <form [formGroup]="comercioForm" (ngSubmit)="registrarComercio()">
+        <div style="margin-bottom: 16px;">
+          <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #475569; margin-bottom: 6px; text-transform: uppercase;">Rut Empresa *</label>
+          <input formControlName="rutEmpresa" type="text" placeholder="Ej: 76.123.456-7" maxlength="12"
+            style="width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 0.875rem; box-sizing: border-box; outline: none;"
+            [style.border-color]="comercioForm.get('rutEmpresa')?.invalid && comercioForm.get('rutEmpresa')?.touched ? '#dc2626' : '#cbd5e1'">
+          <div *ngIf="comercioForm.get('rutEmpresa')?.invalid && comercioForm.get('rutEmpresa')?.touched"
+            style="color: #dc2626; font-size: 0.75rem; margin-top: 4px;">Campo obligatorio.</div>
+        </div>
+
+        <div style="margin-bottom: 16px;">
+          <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #475569; margin-bottom: 6px; text-transform: uppercase;">Razón Social *</label>
+          <input formControlName="razonSocial" type="text" placeholder="Ej: Supermercados del Sur S.A." maxlength="150"
+            style="width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 0.875rem; box-sizing: border-box; outline: none;"
+            [style.border-color]="comercioForm.get('razonSocial')?.invalid && comercioForm.get('razonSocial')?.touched ? '#dc2626' : '#cbd5e1'">
+          <div *ngIf="comercioForm.get('razonSocial')?.invalid && comercioForm.get('razonSocial')?.touched"
+            style="color: #dc2626; font-size: 0.75rem; margin-top: 4px;">Campo obligatorio.</div>
+        </div>
+
+        <div style="margin-bottom: 24px;">
+          <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #475569; margin-bottom: 6px; text-transform: uppercase;">Rubro *</label>
+          <input formControlName="rubro" type="text" placeholder="Ej: Alimentos, Retail, Tecnología" maxlength="50"
+            style="width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 0.875rem; box-sizing: border-box; outline: none;"
+            [style.border-color]="comercioForm.get('rubro')?.invalid && comercioForm.get('rubro')?.touched ? '#dc2626' : '#cbd5e1'">
+          <div *ngIf="comercioForm.get('rubro')?.invalid && comercioForm.get('rubro')?.touched"
+            style="color: #dc2626; font-size: 0.75rem; margin-top: 4px;">Campo obligatorio.</div>
+        </div>
+
+        <div *ngIf="mensajeExito" style="padding: 12px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; color: #166534; font-size: 0.875rem; font-weight: 600; margin-bottom: 16px;">
+          ✅ {{ mensajeExito }}
+        </div>
+        <div *ngIf="mensajeError" style="padding: 12px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 10px; color: #991b1b; font-size: 0.875rem; font-weight: 600; margin-bottom: 16px;">
+          ❌ {{ mensajeError }}
+        </div>
+
+        <button type="submit" [disabled]="comercioForm.invalid || guardando"
+          style="width: 100%; padding: 12px; background: #3b82f6; color: #fff; border: none; border-radius: 12px; font-size: 0.875rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;"
+          [style.opacity]="comercioForm.invalid || guardando ? '0.5' : '1'"
+          [style.cursor]="comercioForm.invalid || guardando ? 'not-allowed' : 'pointer'">
+          <span *ngIf="!guardando">{{ editandoId !== null ? 'Actualizar Comercio' : 'Registrar Comercio' }}</span>
+          <span *ngIf="guardando">{{ editandoId !== null ? 'Actualizando...' : 'Registrando...' }}</span>
+        </button>
+
+        <button *ngIf="editandoId !== null" type="button" (click)="cancelarEdicion()"
+          style="width: 100%; padding: 10px; background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; border-radius: 12px; font-size: 0.875rem; font-weight: 600; cursor: pointer; margin-top: 8px;">
+          Cancelar Edición
+        </button>
+      </form>
+    </div>
+
+    <!-- Panel B: Monitoreo Global -->
+    <div style="background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 28px;">
+      <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 24px;">
+        <div style="width: 40px; height: 40px; background: #10b981; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 1.1rem;">📊</div>
+        <div>
+          <h2 style="font-size: 1.1rem; font-weight: 800; color: #1e293b; margin: 0;">Monitoreo Global del Ecosistema</h2>
+          <p style="font-size: 0.75rem; color: #94a3b8; margin: 0;">Comercios activos operando en la infraestructura SmartStock</p>
+        </div>
+      </div>
+
+      <div style="margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-size: 0.8rem; font-weight: 700; color: #475569;">Total de tenants: {{ comerciosActivos.length }}</span>
+        <button (click)="cargarComerciosActivos()" type="button"
+          style="padding: 6px 16px; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.75rem; font-weight: 600; color: #475569; cursor: pointer;">
+          🔄 Actualizar
+        </button>
+      </div>
+
+      <div *ngIf="cargandoComercios" style="text-align: center; padding: 40px; color: #94a3b8; font-size: 0.875rem;">
+        Cargando comercios...
+      </div>
+
+      <div *ngIf="errorComercios" style="padding: 12px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 10px; color: #991b1b; font-size: 0.875rem; font-weight: 600; margin-bottom: 16px;">
+        ❌ {{ errorComercios }}
+      </div>
+
+      <div *ngIf="!cargandoComercios && comerciosActivos.length === 0 && !errorComercios"
+        style="text-align: center; padding: 40px; color: #94a3b8; font-size: 0.875rem;">
+        No se encontraron comercios activos.
+      </div>
+
+      <div style="overflow-x: auto;" *ngIf="!cargandoComercios && comerciosActivos.length > 0">
+        <table style="width: 100%; border-collapse: collapse; font-size: 0.8rem;">
+          <thead>
+            <tr style="border-bottom: 2px solid #e2e8f0;">
+              <th style="text-align: left; padding: 10px 8px; font-weight: 800; color: #94a3b8; text-transform: uppercase; font-size: 0.65rem;">ID</th>
+              <th style="text-align: left; padding: 10px 8px; font-weight: 800; color: #94a3b8; text-transform: uppercase; font-size: 0.65rem;">RUT Empresa</th>
+              <th style="text-align: left; padding: 10px 8px; font-weight: 800; color: #94a3b8; text-transform: uppercase; font-size: 0.65rem;">Razón Social</th>
+              <th style="text-align: left; padding: 10px 8px; font-weight: 800; color: #94a3b8; text-transform: uppercase; font-size: 0.65rem;">Rubro</th>
+              <th style="text-align: left; padding: 10px 8px; font-weight: 800; color: #94a3b8; text-transform: uppercase; font-size: 0.65rem;">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let c of comerciosActivos" style="border-bottom: 1px solid #f1f5f9;">
+              <td style="padding: 10px 8px; font-weight: 700; color: #3b82f6;">{{ c.id }}</td>
+              <td style="padding: 10px 8px; color: #475569;">{{ c.rutEmpresa }}</td>
+              <td style="padding: 10px 8px; font-weight: 700; color: #1e293b; max-width: 220px;">
+                <span class="text-truncate-tooltip" [title]="c.razonSocial" style="display: block;">{{ c.razonSocial }}</span>
+              </td>
+              <td style="padding: 10px 8px; color: #64748b;">{{ c.rubro }}</td>
+              <td style="padding: 10px 8px;">
+                <button (click)="editarComercio(c)" type="button"
+                  style="padding: 4px 10px; background: #3b82f6; color: #fff; border: none; border-radius: 6px; font-size: 0.7rem; font-weight: 600; cursor: pointer; margin-right: 4px;">
+                  Editar
+                </button>
+                <button (click)="eliminarComercio(c.id)" type="button"
+                  style="padding: 4px 10px; background: #ef4444; color: #fff; border: none; border-radius: 6px; font-size: 0.7rem; font-weight: 600; cursor: pointer;">
+                  Eliminar
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>

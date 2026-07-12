@@ -29,7 +29,7 @@ describe('authInterceptor', () => {
     http.get('/api/data').subscribe();
     const req = httpMock.expectOne('/api/data');
     expect(req.request.headers.get('Authorization')).toBe('Bearer test-token');
-    expect(req.request.headers.get('X-Comercio-ID')).toBe('1');
+    expect(req.request.headers.has('X-Comercio-ID')).toBe(false);
     req.flush({});
   });
 

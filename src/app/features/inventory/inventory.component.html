@@ -1,126 +1,218 @@
-<div *ngIf="loading" class="flex items-center justify-center h-64">
-  <mat-spinner diameter="40"></mat-spinner>
-</div>
-<div *ngIf="error" class="p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 font-medium flex items-center gap-2">
-  <mat-icon class="text-red-600">error</mat-icon>
-  {{ error }}
-</div>
-<div class="space-y-6" *ngIf="!loading && !error">
-  <div class="flex justify-between items-end">
+<div class="space-y-6">
+  <div class="flex justify-between items-end flex-wrap gap-3">
     <div>
-      <h1 class="text-3xl font-bold text-gray-900 uppercase">Mantenedor de Inventario</h1>
-      <p class="text-gray-500">Gestione su catálogo de productos y el control detallado de lotes activos.</p>
+      <h1 class="text-2xl md:text-3xl font-bold text-gray-900 uppercase">Mantenedor de Inventario</h1>
+      <p class="text-gray-500 text-sm">Gestione su catálogo de productos y el control detallado de lotes activos.</p>
     </div>
-    <button mat-flat-button class="!bg-green-500 !text-white !font-bold !text-sm !rounded-lg !shadow-sm hover:!bg-green-600">
-      <mat-icon class="!text-lg mr-1">add</mat-icon> Nuevo Registro
-    </button>
   </div>
 
-  <mat-card class="!shadow-sm overflow-hidden">
-    <div class="p-4 border-b flex justify-between items-center bg-gray-50/50">
-      <div class="flex bg-gray-100 p-1 rounded-lg">
-        <button mat-button class="!px-6 !py-1.5 !bg-white !text-gray-900 !font-bold !text-xs !rounded-md !shadow-sm !min-w-0">Productos</button>
-        <button mat-button class="!px-6 !py-1.5 !text-gray-500 !font-bold !text-xs !min-w-0">Lotes Activos</button>
-      </div>
-      <div class="flex gap-3">
-        <mat-form-field appearance="outline" class="!w-64 !text-xs" subscriptSizing="dynamic">
-          <mat-icon matPrefix class="text-gray-400">search</mat-icon>
-          <input matInput type="text" placeholder="Buscar por nombre o SKU...">
-        </mat-form-field>
-        <button mat-icon-button class="!border !border-gray-200 !rounded-lg text-gray-400 hover:!bg-white">
-          <mat-icon>schedule</mat-icon>
-        </button>
-      </div>
-    </div>
-    <div class="overflow-x-auto">
-      <table mat-table [dataSource]="products" class="w-full">
-        <ng-container matColumnDef="codigoBarra">
-          <th mat-header-cell *matHeaderCellDef class="!px-6 !py-4 !text-gray-400 !font-bold !text-[11px] !uppercase">Cód. Barras</th>
-          <td mat-cell *matCellDef="let product" class="!px-6 !py-4 text-xs text-gray-500">{{product.codigoBarra}}</td>
-        </ng-container>
-        <ng-container matColumnDef="nombre">
-          <th mat-header-cell *matHeaderCellDef class="!px-6 !py-4 !text-gray-400 !font-bold !text-[11px] !uppercase">Nombre Artículo</th>
-          <td mat-cell *matCellDef="let product" class="!px-6 !py-4 font-bold text-gray-900">{{product.nombre}}</td>
-        </ng-container>
-        <ng-container matColumnDef="nombreCategoria">
-          <th mat-header-cell *matHeaderCellDef class="!px-6 !py-4 !text-gray-400 !font-bold !text-[11px] !uppercase !text-center">Categoría</th>
-          <td mat-cell *matCellDef="let product" class="!px-6 !py-4 !text-center">
-            <mat-chip class="!text-xs !bg-gray-100 !text-gray-600 !border !border-gray-200">{{product.nombreCategoria}}</mat-chip>
-          </td>
-        </ng-container>
-        <ng-container matColumnDef="precioBase">
-          <th mat-header-cell *matHeaderCellDef class="!px-6 !py-4 !text-gray-400 !font-bold !text-[11px] !uppercase !text-center">Stock</th>
-          <td mat-cell *matCellDef="let product" class="!px-6 !py-4 !text-center font-bold text-gray-900">${{product.precioBase}}</td>
-        </ng-container>
-        <ng-container matColumnDef="estado">
-          <th mat-header-cell *matHeaderCellDef class="!px-6 !py-4 !text-gray-400 !font-bold !text-[11px] !uppercase !text-center">Estado</th>
-          <td mat-cell *matCellDef="let product" class="!px-6 !py-4 !text-center">
-            <mat-chip class="!text-[10px] !font-bold !text-green-600 !bg-green-50 !border !border-green-200">
-              <mat-icon class="!text-xs !w-3 !h-3 mr-1">circle</mat-icon> Activo
-            </mat-chip>
-          </td>
-        </ng-container>
-        <ng-container matColumnDef="acciones">
-          <th mat-header-cell *matHeaderCellDef class="!px-6 !py-4 !text-gray-400 !font-bold !text-[11px] !uppercase !text-right">Acciones</th>
-          <td mat-cell *matCellDef="let product" class="!px-6 !py-4 !text-right">
-            <div class="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-              <button mat-icon-button class="!w-8 !h-8 text-blue-500 hover:!bg-blue-50">
-                <mat-icon class="!text-lg">edit</mat-icon>
-              </button>
-              <button mat-icon-button class="!w-8 !h-8 text-red-500 hover:!bg-red-50">
-                <mat-icon class="!text-lg">delete</mat-icon>
-              </button>
-            </div>
-          </td>
-        </ng-container>
-        <tr mat-header-row *matHeaderRowDef="['codigoBarra', 'nombre', 'nombreCategoria', 'precioBase', 'estado', 'acciones']"></tr>
-        <tr mat-row *matRowDef="let row; columns: ['codigoBarra', 'nombre', 'nombreCategoria', 'precioBase', 'estado', 'acciones']" class="hover:bg-gray-50 transition-colors group"></tr>
-      </table>
-    </div>
-    <div class="p-4 border-t flex justify-between items-center bg-gray-50/50">
-      <p class="text-[11px] text-gray-400 font-bold uppercase">Mostrando {{ products.length }} artículos registrados</p>
-      <div class="flex gap-1">
-        <button mat-stroked-button class="!px-3 !py-1.5 !text-[11px] !font-bold !text-gray-400 !min-w-0">Anterior</button>
-        <button mat-flat-button class="!px-3 !py-1.5 !text-[11px] !font-bold !bg-blue-50 !text-blue-600 !border !border-blue-600 !min-w-0">1</button>
-        <button mat-stroked-button class="!px-3 !py-1.5 !text-[11px] !font-bold !text-gray-400 !min-w-0">2</button>
-        <button mat-stroked-button class="!px-3 !py-1.5 !text-[11px] !font-bold !text-gray-400 !min-w-0">Siguiente</button>
-      </div>
-    </div>
-  </mat-card>
+  <!-- Mensajes -->
+  <div *ngIf="mensajeExito" class="p-4 bg-green-50 border border-green-200 rounded-xl text-green-700 font-medium flex items-center gap-2">
+    <mat-icon class="text-green-600">check_circle</mat-icon>
+    {{ mensajeExito }}
+  </div>
+  <div *ngIf="mensajeError" class="p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 font-medium flex items-center gap-2">
+    <mat-icon class="text-red-600">error</mat-icon>
+    {{ mensajeError }}
+  </div>
 
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-    <mat-card class="!shadow-sm flex items-center gap-4">
-      <mat-card-content class="flex items-center gap-4 p-6">
-        <div class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center border border-blue-100 shadow-inner">
-          <mat-icon class="text-blue-500">inventory_2</mat-icon>
+  <!-- Tabs -->
+  <div class="flex bg-gray-100 p-1 rounded-lg w-fit">
+    <button mat-button (click)="activeTab = 'productos'"
+      [ngClass]="activeTab === 'productos' ? '!bg-white !text-gray-900 !shadow-sm' : '!text-gray-500'"
+      class="!px-6 !py-1.5 !font-bold !text-xs !rounded-md !min-w-0">Productos</button>
+    <button mat-button (click)="activeTab = 'lotes'"
+      [ngClass]="activeTab === 'lotes' ? '!bg-white !text-gray-900 !shadow-sm' : '!text-gray-500'"
+      class="!px-6 !py-1.5 !font-bold !text-xs !rounded-md !min-w-0">Lotes</button>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="lg:col-span-2">
+      <!-- Tabla de Productos -->
+      <mat-card *ngIf="activeTab === 'productos'" class="!shadow-sm overflow-hidden">
+        <div class="p-4 border-b flex justify-between items-center bg-gray-50/50">
+          <h3 class="font-black text-gray-900 text-sm uppercase">Productos ({{ products.length }})</h3>
+          <button mat-flat-button (click)="loadProductos()" class="!bg-gray-100 !text-gray-700 !font-bold !text-xs">
+            <mat-icon class="!text-lg mr-1">refresh</mat-icon> Actualizar
+          </button>
         </div>
-        <div>
-          <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Total Skus</p>
-          <p class="text-2xl font-bold text-gray-900">{{ products.length }}</p>
+
+        <!-- Skeleton loader mientras la petición está en tránsito -->
+        <app-skeleton-rows *ngIf="loading" [rows]="5" [columns]="5"></app-skeleton-rows>
+
+        <div *ngIf="error && !loading" class="p-4 text-red-700 text-sm">{{ error }}</div>
+
+        <div class="overflow-x-auto" *ngIf="!loading && !error">
+          <table mat-table [dataSource]="products" class="w-full">
+            <ng-container matColumnDef="id">
+              <th mat-header-cell *matHeaderCellDef class="!px-6 !py-4 !text-gray-400 !font-bold !text-[11px] !uppercase">ID</th>
+              <td mat-cell *matCellDef="let p" class="!px-6 !py-4 font-bold text-blue-600 text-xs">{{p.id}}</td>
+            </ng-container>
+            <ng-container matColumnDef="nombre">
+              <th mat-header-cell *matHeaderCellDef class="!px-6 !py-4 !text-gray-400 !font-bold !text-[11px] !uppercase">Nombre</th>
+              <td mat-cell *matCellDef="let p" class="!px-6 !py-4 font-bold text-gray-900 max-w-[220px]">
+                <span class="text-truncate-tooltip" [matTooltip]="p.nombre">{{p.nombre}}</span>
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="sku">
+              <th mat-header-cell *matHeaderCellDef class="!px-6 !py-4 !text-gray-400 !font-bold !text-[11px] !uppercase">SKU</th>
+              <td mat-cell *matCellDef="let p" class="!px-6 !py-4 text-xs text-gray-500">{{p.sku || p.codigoBarra}}</td>
+            </ng-container>
+            <ng-container matColumnDef="categoria">
+              <th mat-header-cell *matHeaderCellDef class="!px-6 !py-4 !text-gray-400 !font-bold !text-[11px] !uppercase">Categoría</th>
+              <td mat-cell *matCellDef="let p" class="!px-6 !py-4">
+                <mat-chip class="!text-xs !bg-gray-100 !text-gray-600 !border !border-gray-200">{{p.categoria || p.nombreCategoria}}</mat-chip>
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="precioBase">
+              <th mat-header-cell *matHeaderCellDef class="!px-6 !py-4 !text-gray-400 !font-bold !text-[11px] !uppercase !text-right">Precio Base</th>
+              <td mat-cell *matCellDef="let p" class="!px-6 !py-4 !text-right font-bold text-gray-900">${{p.precioBase}}</td>
+            </ng-container>
+            <tr mat-header-row *matHeaderRowDef="['id', 'nombre', 'sku', 'categoria', 'precioBase']"></tr>
+            <tr mat-row *matRowDef="let row; columns: ['id', 'nombre', 'sku', 'categoria', 'precioBase']" class="hover:bg-gray-50 transition-colors"></tr>
+          </table>
         </div>
-      </mat-card-content>
-    </mat-card>
-    <mat-card class="!shadow-sm flex items-center gap-4">
-      <mat-card-content class="flex items-center gap-4 p-6">
-        <div class="w-12 h-12 bg-red-50 rounded-xl flex items-center justify-center border border-red-100 shadow-inner">
-          <mat-icon class="text-red-500">warning</mat-icon>
+        <div *ngIf="!loading && products.length === 0 && !error" class="flex flex-col items-center py-12 px-6 text-center">
+          <mat-icon class="!text-4xl text-gray-300 mb-2">inventory_2</mat-icon>
+          <p class="text-gray-400 text-sm">No hay productos registrados.</p>
         </div>
-        <div>
-          <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Bajo Stock</p>
-          <p class="text-2xl font-bold text-gray-900">12</p>
+        <div class="p-4 border-t bg-gray-50/50">
+          <p class="text-[11px] text-gray-400 font-bold uppercase">{{ products.length }} productos registrados</p>
         </div>
-      </mat-card-content>
-    </mat-card>
-    <mat-card class="!shadow-sm flex items-center gap-4">
-      <mat-card-content class="flex items-center gap-4 p-6">
-        <div class="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center border border-green-100 shadow-inner">
-          <mat-icon class="text-green-500">trending_up</mat-icon>
+      </mat-card>
+
+      <!-- Tabla de Lotes -->
+      <mat-card *ngIf="activeTab === 'lotes'" class="!shadow-sm overflow-hidden">
+        <div class="p-4 border-b flex justify-between items-center bg-gray-50/50">
+          <h3 class="font-black text-gray-900 text-sm uppercase">Lotes ({{ lotes.length }})</h3>
+          <button mat-flat-button (click)="loadLotes()" class="!bg-gray-100 !text-gray-700 !font-bold !text-xs">
+            <mat-icon class="!text-lg mr-1">refresh</mat-icon> Actualizar
+          </button>
         </div>
-        <div>
-          <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Último Movimiento</p>
-          <p class="text-lg font-bold text-gray-900">Hace 5 min</p>
+
+        <app-skeleton-rows *ngIf="loadingLotes" [rows]="5" [columns]="6"></app-skeleton-rows>
+
+        <div *ngIf="errorLotes && !loadingLotes" class="p-4 text-red-700 text-sm">{{ errorLotes }}</div>
+
+        <div class="overflow-x-auto" *ngIf="!loadingLotes && !errorLotes">
+          <table mat-table [dataSource]="lotes" class="w-full">
+            <ng-container matColumnDef="id">
+              <th mat-header-cell *matHeaderCellDef class="!px-6 !py-4 !text-gray-400 !font-bold !text-[11px] !uppercase">ID</th>
+              <td mat-cell *matCellDef="let l" class="!px-6 !py-4 font-bold text-blue-600 text-xs">{{l.id}}</td>
+            </ng-container>
+            <ng-container matColumnDef="nombreProducto">
+              <th mat-header-cell *matHeaderCellDef class="!px-6 !py-4 !text-gray-400 !font-bold !text-[11px] !uppercase">Producto</th>
+              <td mat-cell *matCellDef="let l" class="!px-6 !py-4 font-bold text-gray-900 text-xs max-w-[200px]">
+                <span class="text-truncate-tooltip" [matTooltip]="l.nombreProducto">{{l.nombreProducto}}</span>
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="cantidadActual">
+              <th mat-header-cell *matHeaderCellDef class="!px-6 !py-4 !text-gray-400 !font-bold !text-[11px] !uppercase !text-center">Cantidad</th>
+              <td mat-cell *matCellDef="let l" class="!px-6 !py-4 !text-center font-bold text-gray-700">{{l.cantidadActual || l.cantidad}}</td>
+            </ng-container>
+            <ng-container matColumnDef="fechaVencimiento">
+              <th mat-header-cell *matHeaderCellDef class="!px-6 !py-4 !text-gray-400 !font-bold !text-[11px] !uppercase">Vencimiento</th>
+              <td mat-cell *matCellDef="let l" class="!px-6 !py-4 text-xs text-gray-500">{{l.fechaVencimiento}}</td>
+            </ng-container>
+            <ng-container matColumnDef="estadoLote">
+              <th mat-header-cell *matHeaderCellDef class="!px-6 !py-4 !text-gray-400 !font-bold !text-[11px] !uppercase !text-center">Estado</th>
+              <td mat-cell *matCellDef="let l" class="!px-6 !py-4 !text-center">
+                <mat-chip [ngClass]="{
+                  '!bg-green-50 !text-green-600 !border-green-200': l.estadoLote === 'VIGENTE' || l.estadoLote === 'DISPONIBLE',
+                  '!bg-yellow-50 !text-yellow-600 !border-yellow-200': l.estadoLote === 'POR_VENCER',
+                  '!bg-red-50 !text-red-600 !border-red-200': l.estadoLote === 'CRITICO' || l.estadoLote === 'VENCIDO'
+                }" class="!text-[9px] !font-black !uppercase !min-h-5 !border">
+                  {{l.estadoLote}}
+                </mat-chip>
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="precioDinamico">
+              <th mat-header-cell *matHeaderCellDef class="!px-6 !py-4 !text-gray-400 !font-bold !text-[11px] !uppercase !text-right">Precio</th>
+              <td mat-cell *matCellDef="let l" class="!px-6 !py-4 !text-right font-bold text-gray-900">${{l.precioDinamico || l.precioCompra}}</td>
+            </ng-container>
+            <tr mat-header-row *matHeaderRowDef="['id', 'nombreProducto', 'cantidadActual', 'fechaVencimiento', 'estadoLote', 'precioDinamico']"></tr>
+            <tr mat-row *matRowDef="let row; columns: ['id', 'nombreProducto', 'cantidadActual', 'fechaVencimiento', 'estadoLote', 'precioDinamico']" class="hover:bg-gray-50 transition-colors"></tr>
+          </table>
         </div>
-      </mat-card-content>
-    </mat-card>
+        <div *ngIf="!loadingLotes && lotes.length === 0 && !errorLotes" class="flex flex-col items-center py-12 px-6 text-center">
+          <mat-icon class="!text-4xl text-gray-300 mb-2">inbox</mat-icon>
+          <p class="text-gray-400 text-sm">No hay lotes registrados.</p>
+        </div>
+      </mat-card>
+    </div>
+
+    <!-- Panel lateral: Crear Producto -->
+    <div class="space-y-6">
+      <mat-card class="!shadow-sm">
+        <mat-card-content class="p-6">
+          <div class="flex items-center gap-2 mb-6">
+            <mat-icon class="text-blue-500">add_circle</mat-icon>
+            <h3 class="font-bold text-gray-900 uppercase">Nuevo Producto</h3>
+          </div>
+          <form [formGroup]="productoForm" (ngSubmit)="crearProducto()" class="space-y-4">
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Nombre</mat-label>
+              <input matInput type="text" formControlName="nombre" placeholder="Ej: Leche Entera" maxlength="100">
+              <mat-error *ngIf="isInvalid('nombre')">Campo obligatorio</mat-error>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>SKU</mat-label>
+              <input matInput type="text" formControlName="sku" placeholder="Ej: SKU-001" maxlength="50">
+              <mat-error *ngIf="isInvalid('sku')">Campo obligatorio</mat-error>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Descripción</mat-label>
+              <input matInput type="text" formControlName="descripcion" placeholder="Descripción del producto" maxlength="500">
+              <mat-error *ngIf="isInvalid('descripcion')">Campo obligatorio</mat-error>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Precio Base</mat-label>
+              <span matTextPrefix>$&nbsp;</span>
+              <input matInput type="number" formControlName="precioBase" step="0.01" min="0" placeholder="Ej: 1000.00">
+              <mat-error *ngIf="isInvalid('precioBase') && productoForm.get('precioBase')?.hasError('required')">Campo obligatorio</mat-error>
+              <mat-error *ngIf="isInvalid('precioBase') && productoForm.get('precioBase')?.hasError('min')">Debe ser mayor o igual a 0</mat-error>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Categoría</mat-label>
+              <input matInput type="text" formControlName="categoria" placeholder="Ej: GENERAL, TECNOLOGIA" maxlength="50">
+              <mat-error *ngIf="isInvalid('categoria')">Campo obligatorio</mat-error>
+            </mat-form-field>
+            <button mat-flat-button type="submit"
+              [disabled]="productoForm.invalid || guardando"
+              [class.opacity-50]="productoForm.invalid || guardando"
+              [class.cursor-not-allowed]="productoForm.invalid || guardando"
+              class="!w-full !bg-blue-600 !text-white !py-3 !rounded-xl !font-black !text-[10px] !uppercase !tracking-widest !shadow-lg !shadow-blue-100 hover:!bg-blue-700 disabled:hover:!bg-blue-600">
+              <mat-spinner *ngIf="guardando" diameter="16" class="!inline-block !align-middle mr-2 [&_circle]:!stroke-white"></mat-spinner>
+              <mat-icon *ngIf="!guardando" class="!text-sm mr-1 align-middle">save</mat-icon>
+              {{ guardando ? 'Guardando...' : 'Crear Producto' }}
+            </button>
+          </form>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Stats -->
+      <mat-card class="!shadow-sm">
+        <mat-card-content class="flex items-center gap-4 p-6">
+          <div class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center border border-blue-100">
+            <mat-icon class="text-blue-500">inventory_2</mat-icon>
+          </div>
+          <div>
+            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Total Productos</p>
+            <p class="text-2xl font-bold text-gray-900">{{ products.length }}</p>
+          </div>
+        </mat-card-content>
+      </mat-card>
+      <mat-card class="!shadow-sm">
+        <mat-card-content class="flex items-center gap-4 p-6">
+          <div class="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center border border-green-100">
+            <mat-icon class="text-green-500">all_inbox</mat-icon>
+          </div>
+          <div>
+            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Total Lotes</p>
+            <p class="text-2xl font-bold text-gray-900">{{ lotes.length }}</p>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
   </div>
 </div>

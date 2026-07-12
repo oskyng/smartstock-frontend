@@ -1,149 +1,136 @@
-<div class="space-y-6">
+<div *ngIf="error" class="p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 font-medium flex items-center gap-2">
+  <mat-icon class="text-red-600">error</mat-icon>
+  {{ error }}
+</div>
+<div class="space-y-6" *ngIf="!error">
   <div class="flex justify-between items-end border-b pb-6">
     <div class="flex items-center gap-3">
       <div class="w-10 h-10 bg-blue-600 rounded flex items-center justify-center text-white font-bold">S</div>
       <div>
         <h1 class="text-2xl font-black text-gray-900 uppercase tracking-tighter italic flex items-center gap-2">
-          SmartStock Central Admin <span class="text-xs font-normal text-gray-400 normal-case italic border-l pl-2">SuperUser Dashboard Global</span>
+          SmartStock Central Admin <span class="text-xs font-normal text-gray-400 normal-case italic border-l pl-2">Gestión Global de Comercios</span>
         </h1>
       </div>
     </div>
-    <div class="flex items-center gap-3">
-      <div class="text-right">
-        <p class="text-xs font-black text-gray-900 uppercase">Admin User</p>
-        <p class="text-[10px] text-gray-400 font-bold">SuperUser</p>
-      </div>
-      <img src="https://i.pravatar.cc/150?u=superuser" alt="Admin" class="w-10 h-10 rounded-full border-2 border-blue-100 shadow-sm">
-    </div>
+    <button mat-flat-button (click)="loadComercios()" class="!bg-gray-100 !text-gray-700 !font-bold !text-xs">
+      <mat-icon class="!text-lg mr-1">refresh</mat-icon> Actualizar
+    </button>
+  </div>
+
+  <!-- Mensajes -->
+  <div *ngIf="mensajeExito" class="p-4 bg-green-50 border border-green-200 rounded-xl text-green-700 font-medium flex items-center gap-2">
+    <mat-icon class="text-green-600">check_circle</mat-icon>
+    {{ mensajeExito }}
+  </div>
+  <div *ngIf="mensajeError" class="p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 font-medium flex items-center gap-2">
+    <mat-icon class="text-red-600">error</mat-icon>
+    {{ mensajeError }}
   </div>
 
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
     <div class="lg:col-span-2 space-y-6">
-      <div class="flex flex-col">
-        <h2 class="text-2xl font-black text-gray-900 uppercase tracking-tight">Gestión Global de Comercios</h2>
-        <p class="text-xs text-gray-500 font-medium mt-1">Administre los tenants activos y sus métricas operativas básicas.</p>
-      </div>
-
       <mat-card class="!shadow-sm !rounded-2xl overflow-hidden">
         <div class="p-4 border-b flex justify-between items-center bg-gray-50/50">
-          <h3 class="font-black text-gray-900 text-sm uppercase">Listado de Tenants</h3>
-          <div class="flex gap-3">
-            <mat-form-field appearance="outline" class="!w-64 !text-xs" subscriptSizing="dynamic">
-              <mat-icon matPrefix class="text-gray-400">search</mat-icon>
-              <input matInput type="text" placeholder="Buscar por RUT o Razón Social...">
-            </mat-form-field>
-            <button mat-icon-button class="!border !border-gray-200 !rounded-xl text-gray-400 hover:!bg-white">
-              <mat-icon>schedule</mat-icon>
-            </button>
-          </div>
+          <h3 class="font-black text-gray-900 text-sm uppercase">Listado de Comercios ({{ comercios.length }} tenants)</h3>
         </div>
-        <div class="overflow-x-auto">
-          <table mat-table [dataSource]="tenants" class="w-full">
+        <app-skeleton-rows *ngIf="loading" [rows]="5" [columns]="5"></app-skeleton-rows>
+
+        <div class="overflow-x-auto" *ngIf="!loading">
+          <table mat-table [dataSource]="comercios" class="w-full">
             <ng-container matColumnDef="id">
               <th mat-header-cell *matHeaderCellDef class="!px-6 !py-4 !text-gray-400 !font-black !text-[10px] !uppercase">ID</th>
-              <td mat-cell *matCellDef="let tenant" class="!px-6 !py-4 font-bold text-blue-600 text-xs">{{tenant.id}}</td>
+              <td mat-cell *matCellDef="let c" class="!px-6 !py-4 font-bold text-blue-600 text-xs">{{c.id}}</td>
             </ng-container>
-            <ng-container matColumnDef="rut">
-              <th mat-header-cell *matHeaderCellDef class="!px-6 !py-4 !text-gray-400 !font-black !text-[10px] !uppercase">RUT</th>
-              <td mat-cell *matCellDef="let tenant" class="!px-6 !py-4 text-gray-500 font-medium text-xs">{{tenant.rut}}</td>
+            <ng-container matColumnDef="rutEmpresa">
+              <th mat-header-cell *matHeaderCellDef class="!px-6 !py-4 !text-gray-400 !font-black !text-[10px] !uppercase">RUT Empresa</th>
+              <td mat-cell *matCellDef="let c" class="!px-6 !py-4 text-gray-500 font-medium text-xs">{{c.rutEmpresa}}</td>
             </ng-container>
             <ng-container matColumnDef="razonSocial">
               <th mat-header-cell *matHeaderCellDef class="!px-6 !py-4 !text-gray-400 !font-black !text-[10px] !uppercase">Razón Social</th>
-              <td mat-cell *matCellDef="let tenant" class="!px-6 !py-4 font-black text-gray-900 text-xs">{{tenant.razonSocial}}</td>
-            </ng-container>
-            <ng-container matColumnDef="sucursales">
-              <th mat-header-cell *matHeaderCellDef class="!px-6 !py-4 !text-gray-400 !font-black !text-[10px] !uppercase !text-center">Sucursales</th>
-              <td mat-cell *matCellDef="let tenant" class="!px-6 !py-4 !text-center font-bold text-gray-700 text-xs">{{tenant.sucursales}}</td>
-            </ng-container>
-            <ng-container matColumnDef="usuarios">
-              <th mat-header-cell *matHeaderCellDef class="!px-6 !py-4 !text-gray-400 !font-black !text-[10px] !uppercase !text-center">Usuarios</th>
-              <td mat-cell *matCellDef="let tenant" class="!px-6 !py-4 !text-center">
-                <mat-chip class="!bg-blue-50 !text-blue-600 !font-black !text-[10px]">{{tenant.usuarios}}</mat-chip>
+              <td mat-cell *matCellDef="let c" class="!px-6 !py-4 font-black text-gray-900 text-xs max-w-[220px]">
+                <span class="text-truncate-tooltip" [matTooltip]="c.razonSocial">{{c.razonSocial}}</span>
               </td>
             </ng-container>
-            <ng-container matColumnDef="status">
-              <th mat-header-cell *matHeaderCellDef class="!px-6 !py-4 !text-gray-400 !font-black !text-[10px] !uppercase !text-center">Estado</th>
-              <td mat-cell *matCellDef="let tenant" class="!px-6 !py-4 !text-center">
-                <mat-chip [ngClass]="{
-                  '!text-green-600 !bg-green-50 !border !border-green-200': tenant.status === 'Activo',
-                  '!text-red-600 !bg-red-50 !border !border-red-200': tenant.status === 'Inactivo',
-                  '!text-gray-600 !bg-gray-50 !border !border-gray-200': tenant.status === 'Pendiente'
-                }" class="!text-[9px] !font-black !uppercase !min-h-5">
-                  <mat-icon class="!text-xs !w-3 !h-3 mr-1">circle</mat-icon> {{tenant.status}}
-                </mat-chip>
-              </td>
+            <ng-container matColumnDef="rubro">
+              <th mat-header-cell *matHeaderCellDef class="!px-6 !py-4 !text-gray-400 !font-black !text-[10px] !uppercase">Rubro</th>
+              <td mat-cell *matCellDef="let c" class="!px-6 !py-4 text-gray-500 text-xs">{{c.rubro}}</td>
             </ng-container>
             <ng-container matColumnDef="acciones">
-              <th mat-header-cell *matHeaderCellDef class="!px-6 !py-4"></th>
-              <td mat-cell *matCellDef="let tenant" class="!px-6 !py-4 text-gray-400 !text-right">...</td>
+              <th mat-header-cell *matHeaderCellDef class="!px-6 !py-4 !text-gray-400 !font-black !text-[10px] !uppercase !text-right">Acciones</th>
+              <td mat-cell *matCellDef="let c" class="!px-6 !py-4 !text-right">
+                <button mat-icon-button color="primary" (click)="editarComercio(c)" matTooltip="Editar">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button color="warn" (click)="eliminarComercio(c.id)" matTooltip="Eliminar">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </td>
             </ng-container>
-            <tr mat-header-row *matHeaderRowDef="['id', 'rut', 'razonSocial', 'sucursales', 'usuarios', 'status', 'acciones']"></tr>
-            <tr mat-row *matRowDef="let row; columns: ['id', 'rut', 'razonSocial', 'sucursales', 'usuarios', 'status', 'acciones']" class="hover:bg-blue-50/30 transition-colors"></tr>
+            <tr mat-header-row *matHeaderRowDef="['id', 'rutEmpresa', 'razonSocial', 'rubro', 'acciones']"></tr>
+            <tr mat-row *matRowDef="let row; columns: ['id', 'rutEmpresa', 'razonSocial', 'rubro', 'acciones']" class="hover:bg-blue-50/30 transition-colors"></tr>
           </table>
         </div>
-        <div class="p-4 border-t flex justify-between items-center bg-gray-50/50">
-          <p class="text-[10px] text-gray-400 font-bold uppercase">Mostrando 5 de 48 comercios registrados</p>
-          <div class="flex gap-2">
-            <button mat-stroked-button class="!text-[10px] !font-black !text-gray-400 !uppercase !rounded-xl">Anterior</button>
-            <button mat-stroked-button class="!text-[10px] !font-black !text-gray-900 !uppercase !rounded-xl !bg-white !shadow-sm hover:!border-blue-500">Siguiente</button>
-          </div>
+        <div *ngIf="!loading && comercios.length === 0" class="flex flex-col items-center py-12 px-6 text-center">
+          <mat-icon class="!text-4xl text-gray-300 mb-2">storefront</mat-icon>
+          <p class="text-gray-400 text-sm">No hay comercios registrados.</p>
         </div>
       </mat-card>
     </div>
 
+    <!-- Panel lateral: Crear/Editar Comercio -->
     <div class="space-y-6">
-      <button mat-flat-button class="!w-full !bg-blue-500 hover:!bg-blue-600 !text-white !font-black !py-4 !rounded-xl !shadow-xl !shadow-blue-100 !uppercase !text-xs !tracking-widest">
-        <mat-icon class="!text-xl mr-2">add</mat-icon> Registrar Comercio
-      </button>
-
       <mat-card class="!shadow-sm !rounded-2xl">
         <mat-card-content class="p-8">
           <div class="flex items-center gap-4 mb-8">
             <div class="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center text-white">
-              <mat-icon>person</mat-icon>
+              <mat-icon>{{ editandoId !== null ? 'edit' : 'add_business' }}</mat-icon>
             </div>
             <div>
-              <h3 class="font-black text-gray-900 uppercase text-sm">Usuarios del Sistema</h3>
-              <p class="text-[10px] text-gray-400 font-medium">Alta de accesos administrativos</p>
+              <h3 class="font-black text-gray-900 uppercase text-sm">{{ editandoId !== null ? 'Editar Comercio' : 'Nuevo Comercio' }}</h3>
+              <p class="text-[10px] text-gray-400 font-medium">{{ editandoId !== null ? 'Actualice los datos del comercio' : 'Alta de nuevo tenant en la plataforma' }}</p>
             </div>
           </div>
 
-          <form class="space-y-6">
+          <div class="flex items-start gap-2 mb-6 p-3 bg-blue-50 border border-blue-100 rounded-xl">
+            <mat-icon class="!text-base text-blue-500 mt-0.5">info</mat-icon>
+            <p class="text-[11px] text-blue-700 font-medium leading-relaxed">
+              Como <strong>ADMIN_SISTEMA</strong> esta operación es global: no requiere ni admite un
+              comercio (X-Comercio-ID) asociado, ya que crea el tenant en sí mismo.
+            </p>
+          </div>
+
+          <form [formGroup]="comercioForm" (ngSubmit)="guardarComercio()" class="space-y-6">
             <mat-form-field appearance="outline" class="w-full">
-              <mat-label>Nombre Completo</mat-label>
-              <input matInput type="text" placeholder="Ej: Juan Pérez">
+              <mat-label>RUT Empresa</mat-label>
+              <input matInput type="text" formControlName="rutEmpresa" placeholder="Ej: 76.123.456-7" maxlength="12">
+              <mat-error *ngIf="isInvalid('rutEmpresa')">Campo obligatorio</mat-error>
             </mat-form-field>
             <mat-form-field appearance="outline" class="w-full">
-              <mat-label>Asignar Rol</mat-label>
-              <mat-select>
-                <mat-option value="operario">Operario de Sistema</mat-option>
-                <mat-option value="admin">Admin Comercio</mat-option>
-                <mat-option value="super">SuperUser</mat-option>
-              </mat-select>
+              <mat-label>Razón Social</mat-label>
+              <input matInput type="text" formControlName="razonSocial" placeholder="Ej: Supermercados del Sur S.A." maxlength="150">
+              <mat-error *ngIf="isInvalid('razonSocial')">Campo obligatorio</mat-error>
             </mat-form-field>
             <mat-form-field appearance="outline" class="w-full">
-              <mat-label>Comercio Vinculado</mat-label>
+              <mat-label>Rubro</mat-label>
               <mat-icon matPrefix class="text-gray-400">store</mat-icon>
-              <input matInput type="text" placeholder="Seleccione empresa">
+              <input matInput type="text" formControlName="rubro" placeholder="Ej: Alimentos, Retail" maxlength="50">
+              <mat-error *ngIf="isInvalid('rubro')">Campo obligatorio</mat-error>
             </mat-form-field>
 
-            <button mat-flat-button class="!w-full !bg-blue-500 !text-white !py-4 !rounded-xl !font-black !text-xs !uppercase !tracking-widest !shadow-lg !shadow-blue-100 hover:!bg-blue-600">
-              Confirmar Alta de Usuario
+            <button mat-flat-button type="submit" [disabled]="comercioForm.invalid || guardando"
+              [class.opacity-50]="comercioForm.invalid || guardando"
+              [class.cursor-not-allowed]="comercioForm.invalid || guardando"
+              class="!w-full !bg-blue-500 !text-white !py-4 !rounded-xl !font-black !text-xs !uppercase !tracking-widest !shadow-lg !shadow-blue-100 hover:!bg-blue-600 disabled:hover:!bg-blue-500">
+              <mat-spinner *ngIf="guardando" diameter="16" class="!inline-block !align-middle mr-2 [&_circle]:!stroke-white"></mat-spinner>
+              {{ guardando ? 'Guardando...' : (editandoId !== null ? 'Actualizar Comercio' : 'Registrar Comercio') }}
             </button>
-            <button mat-button class="!w-full !py-3 !text-[10px] !font-black !text-gray-400 !uppercase !tracking-widest hover:!text-red-500">
-              Cancelar Operación
+            <button *ngIf="editandoId !== null" mat-button type="button" (click)="cancelarEdicion()"
+              class="!w-full !py-3 !text-[10px] !font-black !text-gray-400 !uppercase !tracking-widest hover:!text-red-500">
+              Cancelar Edición
             </button>
           </form>
         </mat-card-content>
       </mat-card>
-
-      <div class="bg-blue-50/50 p-6 rounded-2xl border border-blue-100 flex gap-4">
-        <mat-icon class="text-blue-500">check_circle</mat-icon>
-        <div>
-          <p class="text-[11px] font-black text-gray-900 uppercase">Aprobación Instantánea</p>
-          <p class="text-[10px] text-gray-500 leading-relaxed mt-1 font-medium">Los usuarios con rol SuperUser requieren verificación de doble factor tras el primer inicio de sesión.</p>
-        </div>
-      </div>
     </div>
   </div>
 </div>

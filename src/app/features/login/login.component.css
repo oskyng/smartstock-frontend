@@ -1,0 +1,92 @@
+/* Login component styles */
+
+/* Spinner inline dentro del botón */
+.login-btn .mat-mdc-progress-spinner {
+  display: inline-block !important;
+  vertical-align: middle;
+  margin-right: 8px;
+}
+
+/* Asegurar que el botón tenga el color correcto */
+.login-btn {
+  background-color: #3b82f6 !important;
+  color: white !important;
+  width: 100%;
+  padding: 12px 0 !important;
+  border-radius: 12px !important;
+  font-weight: 700 !important;
+  font-size: 1rem !important;
+  box-shadow: 0 4px 14px rgba(59, 130, 246, 0.3) !important;
+  transition: background-color 0.2s ease;
+}
+
+.login-btn:hover:not(:disabled) {
+  background-color: #2563eb !important;
+}
+
+.login-btn:disabled {
+  opacity: 0.6 !important;
+}
+
+/* Card con sombra visible */
+:host .mat-mdc-card {
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+  border: none !important;
+  border-radius: 1rem !important;
+}
+
+/* Iconos prefix con espaciado */
+.mat-mdc-form-field .mat-icon[matPrefix] {
+  margin-right: 8px;
+}
+
+/* Error message box */
+.error-box {
+  padding: 12px;
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  color: #b91c1c;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.error-box .mat-icon {
+  color: #dc2626;
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+
+/* Info box */
+.info-box {
+  margin-top: 2rem;
+  padding: 1rem;
+  background-color: #eff6ff;
+  border-radius: 12px;
+  border: 1px solid #dbeafe;
+  display: flex;
+  gap: 12px;
+}
+
+.info-box .mat-icon {
+  color: #3b82f6;
+  flex-shrink: 0;
+}
+
+.info-box p {
+  font-size: 10px;
+  color: #1d4ed8;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Checkbox styling */
+.remember-checkbox {
+  font-size: 0.75rem !important;
+  font-weight: 600;
+  color: #4b5563;
+}

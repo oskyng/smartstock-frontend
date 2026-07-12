@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -15,7 +15,8 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
   selector: 'app-login',
   standalone: true,
   imports: [CommonModule, FormsModule, MatCardModule, MatFormFieldModule, MatInputModule, MatButtonModule, MatIconModule, MatCheckboxModule, MatProgressSpinnerModule],
-  templateUrl: './login.component.html'
+  templateUrl: './login.component.html',
+  styleUrls: ['./login.component.css']
 })
 export class LoginComponent {
   email = '';
@@ -23,19 +24,52 @@ export class LoginComponent {
   errorMessage = '';
   loading = false;
 
-  constructor(private router: Router, private authService: AuthService) {}
+  constructor(private router: Router, private authService: AuthService, private cdr: ChangeDetectorRef) {}
 
   onLogin() {
     this.errorMessage = '';
+
+    if (!this.email || !this.password) {
+      this.errorMessage = 'Debe ingresar su email y contraseña.';
+      return;
+    }
+
     this.loading = true;
     this.authService.login({ email: this.email, password: this.password }).subscribe({
-      next: () => {
+      next: (res) => {
         this.loading = false;
-        this.router.navigate(['/dashboard']);
+        const rol = res.rol;
+        switch (rol) {
+          case 'ADMIN_SISTEMA':
+            this.router.navigate(['/admin/dashboard']);
+            break;
+          case 'GERENTE_TIENDA':
+            this.router.navigate(['/gerencia/dashboard']);
+            break;
+          case 'OPERADOR_INVENTARIO':
+            this.router.navigate(['/inventario/ingreso']);
+            break;
+          case 'REPONEDOR_SALA':
+            this.router.navigate(['/alertas/bandeja']);
+            break;
+          default:
+            this.router.navigate(['/dashboard']);
+            break;
+        }
+        this.cdr.markForCheck();
       },
       error: (err) => {
         this.loading = false;
-        this.errorMessage = err.error?.message || 'Credenciales inválidas. Intente nuevamente.';
+        if (err.status === 0) {
+          this.errorMessage = 'No se pudo conectar con el servidor. Verifique su conexión.';
+        } else if (err.status === 401 || err.status === 403) {
+          this.errorMessage = err.error?.message || 'Credenciales inválidas. Intente nuevamente.';
+        } else if (err.status >= 500) {
+          this.errorMessage = 'Error interno del servidor. Intente más tarde.';
+        } else {
+          this.errorMessage = err.error?.message || 'Ocurrió un error inesperado. Intente nuevamente.';
+        }
+        this.cdr.markForCheck();
       }
     });
   }

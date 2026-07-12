@@ -1,8 +1,23 @@
-<div class="flex h-screen bg-gray-100">
-  <app-sidebar></app-sidebar>
-  <div class="flex-1 flex flex-col overflow-hidden">
-    <app-navbar></app-navbar>
-    <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-6">
+<div class="flex h-screen bg-gray-100 overflow-hidden">
+  <!-- Backdrop móvil: cierra el sidebar al tocar fuera de él -->
+  <div
+    *ngIf="sidebarOpen()"
+    (click)="closeSidebar()"
+    class="fixed inset-0 z-30 bg-black/40 md:hidden"
+    aria-hidden="true">
+  </div>
+
+  <!-- Sidebar: drawer deslizable en mobile, estático en desktop (md+) -->
+  <div
+    class="fixed inset-y-0 left-0 z-40 h-full transition-transform duration-200 ease-in-out md:static md:translate-x-0"
+    [class.translate-x-0]="sidebarOpen()"
+    [class.-translate-x-full]="!sidebarOpen()">
+    <app-sidebar (navigate)="closeSidebar()"></app-sidebar>
+  </div>
+
+  <div class="flex-1 flex flex-col min-h-0 overflow-hidden">
+    <app-navbar (menuToggle)="toggleSidebar()"></app-navbar>
+    <main class="flex-1 min-h-0 overflow-x-hidden overflow-y-auto bg-gray-100 p-4 md:p-6">
       <router-outlet></router-outlet>
     </main>
   </div>

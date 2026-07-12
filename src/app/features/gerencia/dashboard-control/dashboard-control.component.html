@@ -1,0 +1,168 @@
+<div class="space-y-6">
+  <h1 class="text-3xl font-bold text-gray-900">Dashboard de Control - Gerencia</h1>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Panel de Reglas de Depreciación -->
+    <mat-card class="!shadow-sm">
+      <div class="p-4 bg-blue-600 text-white rounded-t-lg">
+        <h3 class="font-bold text-lg">Reglas de Depreciación</h3>
+      </div>
+      <mat-card-content class="p-6">
+        <div *ngIf="mensajeExitoReglas" class="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 font-medium flex items-center justify-between">
+          <span>{{ mensajeExitoReglas }}</span>
+          <button mat-icon-button (click)="mensajeExitoReglas = null"><mat-icon class="text-green-600">close</mat-icon></button>
+        </div>
+        <div *ngIf="mensajeErrorReglas" class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 font-medium flex items-center justify-between">
+          <span>{{ mensajeErrorReglas }}</span>
+          <button mat-icon-button (click)="mensajeErrorReglas = null"><mat-icon class="text-red-600">close</mat-icon></button>
+        </div>
+
+        <form [formGroup]="reglasForm" (ngSubmit)="crearRegla()" class="space-y-4">
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Nombre de la Regla</mat-label>
+            <input matInput formControlName="nombre" placeholder="Ej: Regla Lácteos" maxlength="100">
+            <mat-error *ngIf="isInvalid('nombre')">Este campo es obligatorio.</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Días Críticos Mínimos</mat-label>
+            <input matInput type="number" formControlName="diasCriticosMin" min="1" max="365" step="1">
+            <mat-error *ngIf="isInvalid('diasCriticosMin') && reglasForm.get('diasCriticosMin')?.hasError('required')">Este campo es obligatorio.</mat-error>
+            <mat-error *ngIf="isInvalid('diasCriticosMin') && reglasForm.get('diasCriticosMin')?.hasError('min')">Debe ser al menos 1 día.</mat-error>
+            <mat-error *ngIf="isInvalid('diasCriticosMin') && reglasForm.get('diasCriticosMin')?.hasError('max')">Máximo 365 días.</mat-error>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Porcentaje de Descuento (%)</mat-label>
+            <input matInput type="number" formControlName="porcentajeDescuento" step="0.01" min="0" max="100">
+            <mat-error *ngIf="isInvalid('porcentajeDescuento') && reglasForm.get('porcentajeDescuento')?.hasError('required')">Este campo es obligatorio.</mat-error>
+            <mat-error *ngIf="isInvalid('porcentajeDescuento') && (reglasForm.get('porcentajeDescuento')?.hasError('min') || reglasForm.get('porcentajeDescuento')?.hasError('max'))">Debe estar entre 0 y 100.</mat-error>
+          </mat-form-field>
+
+          <mat-checkbox formControlName="activa" color="primary">Regla Activa</mat-checkbox>
+
+          <button mat-flat-button color="primary" type="submit" class="w-full"
+            [disabled]="reglasForm.invalid || guardandoReglas"
+            [class.opacity-50]="reglasForm.invalid || guardandoReglas"
+            [class.cursor-not-allowed]="reglasForm.invalid || guardandoReglas">
+            <mat-spinner *ngIf="guardandoReglas" diameter="18" class="!inline-block !align-middle mr-2 [&_circle]:!stroke-white"></mat-spinner>
+            {{ guardandoReglas ? 'Guardando...' : 'Crear Regla' }}
+          </button>
+        </form>
+
+        <!-- Tabla de reglas existentes -->
+        <mat-divider class="!my-6"></mat-divider>
+        <h3 class="font-bold text-gray-900 mb-4">Reglas Registradas</h3>
+
+        <app-skeleton-rows *ngIf="cargandoReglas" [rows]="3" [columns]="5"></app-skeleton-rows>
+
+        <div *ngIf="errorReglas && !cargandoReglas" class="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 font-medium">{{ errorReglas }}</div>
+
+        <div *ngIf="!cargandoReglas && reglas.length === 0 && !errorReglas" class="p-3 bg-blue-50 border border-blue-200 rounded-lg text-blue-700 font-medium">
+          No hay reglas registradas.
+        </div>
+
+        <div *ngIf="!cargandoReglas && reglas.length > 0" class="overflow-x-auto">
+          <table mat-table [dataSource]="reglas" class="w-full">
+            <ng-container matColumnDef="id">
+              <th mat-header-cell *matHeaderCellDef class="!px-4 !py-3 !text-gray-400 !font-bold !text-[10px] !uppercase !bg-gray-50">ID</th>
+              <td mat-cell *matCellDef="let r" class="!px-4 !py-3 text-sm">{{ r.id }}</td>
+            </ng-container>
+            <ng-container matColumnDef="nombre">
+              <th mat-header-cell *matHeaderCellDef class="!px-4 !py-3 !text-gray-400 !font-bold !text-[10px] !uppercase !bg-gray-50">Nombre</th>
+              <td mat-cell *matCellDef="let r" class="!px-4 !py-3 text-sm font-bold text-gray-900 max-w-[140px]">
+                <span class="text-truncate-tooltip" [matTooltip]="r.nombre">{{ r.nombre }}</span>
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="diasCriticosMin">
+              <th mat-header-cell *matHeaderCellDef class="!px-4 !py-3 !text-gray-400 !font-bold !text-[10px] !uppercase !bg-gray-50">Días Críticos</th>
+              <td mat-cell *matCellDef="let r" class="!px-4 !py-3 text-sm">{{ r.diasCriticosMin }}</td>
+            </ng-container>
+            <ng-container matColumnDef="porcentajeDescuento">
+              <th mat-header-cell *matHeaderCellDef class="!px-4 !py-3 !text-gray-400 !font-bold !text-[10px] !uppercase !bg-gray-50">Descuento %</th>
+              <td mat-cell *matCellDef="let r" class="!px-4 !py-3 text-sm">{{ r.porcentajeDescuento }}%</td>
+            </ng-container>
+            <ng-container matColumnDef="activa">
+              <th mat-header-cell *matHeaderCellDef class="!px-4 !py-3 !text-gray-400 !font-bold !text-[10px] !uppercase !bg-gray-50">Activa</th>
+              <td mat-cell *matCellDef="let r" class="!px-4 !py-3">
+                <mat-chip [ngClass]="r.activa ? '!bg-green-100 !text-green-700' : '!bg-gray-100 !text-gray-700'" class="!text-[10px] !font-bold !px-2 !min-h-6">
+                  {{ r.activa ? 'Sí' : 'No' }}
+                </mat-chip>
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="acciones">
+              <th mat-header-cell *matHeaderCellDef class="!px-4 !py-3 !text-gray-400 !font-bold !text-[10px] !uppercase !bg-gray-50">Acciones</th>
+              <td mat-cell *matCellDef="let r" class="!px-4 !py-3">
+                <button mat-icon-button color="warn" (click)="eliminarRegla(r.id)" matTooltip="Eliminar">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </td>
+            </ng-container>
+            <tr mat-header-row *matHeaderRowDef="['id', 'nombre', 'diasCriticosMin', 'porcentajeDescuento', 'activa', 'acciones']"></tr>
+            <tr mat-row *matRowDef="let row; columns: ['id', 'nombre', 'diasCriticosMin', 'porcentajeDescuento', 'activa', 'acciones']" class="hover:bg-gray-50 transition-colors"></tr>
+          </table>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Panel de Alertas -->
+    <mat-card class="!shadow-sm">
+      <div class="p-4 bg-amber-400 text-gray-900 rounded-t-lg flex justify-between items-center">
+        <h3 class="font-bold text-lg">Alertas del Comercio</h3>
+      </div>
+      <mat-card-content class="p-6">
+        <app-skeleton-rows *ngIf="cargandoAlertas" [rows]="3" [columns]="5"></app-skeleton-rows>
+
+        <div *ngIf="mensajeErrorAlertas && !cargandoAlertas" class="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 font-medium">{{ mensajeErrorAlertas }}</div>
+
+        <div *ngIf="alertasNoDisponibles && !cargandoAlertas" class="flex flex-col items-center text-center py-8 px-4">
+          <mat-icon class="!text-3xl text-gray-300 mb-2">visibility_off</mat-icon>
+          <p class="text-sm text-gray-500 font-medium">El listado detallado de alertas es gestionado por el rol Reponedor de Sala.</p>
+          <p class="text-xs text-gray-400 mt-1">Las alertas escaladas por incumplimiento de SLA se notifican en el canal de auditoría en tiempo real.</p>
+        </div>
+
+        <div *ngIf="!cargandoAlertas && !alertasNoDisponibles && alertas.length === 0 && !mensajeErrorAlertas" class="p-3 bg-green-50 border border-green-200 rounded-lg text-green-700 font-medium flex items-center gap-2">
+          <mat-icon class="text-green-600">check_circle</mat-icon>
+          No hay alertas registradas. El equipo está al día.
+        </div>
+
+        <div *ngIf="!cargandoAlertas && alertas.length > 0" class="overflow-x-auto">
+          <table mat-table [dataSource]="alertas" class="w-full">
+            <ng-container matColumnDef="id">
+              <th mat-header-cell *matHeaderCellDef class="!px-4 !py-3 !text-gray-400 !font-bold !text-[10px] !uppercase !bg-gray-50">ID</th>
+              <td mat-cell *matCellDef="let alerta" class="!px-4 !py-3 text-sm">{{ alerta.id }}</td>
+            </ng-container>
+            <ng-container matColumnDef="mensaje">
+              <th mat-header-cell *matHeaderCellDef class="!px-4 !py-3 !text-gray-400 !font-bold !text-[10px] !uppercase !bg-gray-50">Mensaje</th>
+              <td mat-cell *matCellDef="let alerta" class="!px-4 !py-3 text-sm max-w-[220px]">
+                <span class="text-truncate-tooltip" [matTooltip]="alerta.mensaje">{{ alerta.mensaje }}</span>
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="rolAsignado">
+              <th mat-header-cell *matHeaderCellDef class="!px-4 !py-3 !text-gray-400 !font-bold !text-[10px] !uppercase !bg-gray-50">Rol Asignado</th>
+              <td mat-cell *matCellDef="let alerta" class="!px-4 !py-3 text-sm">{{ alerta.rolAsignado }}</td>
+            </ng-container>
+            <ng-container matColumnDef="fechaLimite">
+              <th mat-header-cell *matHeaderCellDef class="!px-4 !py-3 !text-gray-400 !font-bold !text-[10px] !uppercase !bg-gray-50">Fecha Límite</th>
+              <td mat-cell *matCellDef="let alerta" class="!px-4 !py-3 text-sm">{{ alerta.fechaLimite | date:'dd/MM/yyyy HH:mm' }}</td>
+            </ng-container>
+            <ng-container matColumnDef="estado">
+              <th mat-header-cell *matHeaderCellDef class="!px-4 !py-3 !text-gray-400 !font-bold !text-[10px] !uppercase !bg-gray-50">Estado</th>
+              <td mat-cell *matCellDef="let alerta" class="!px-4 !py-3">
+                <mat-chip [ngClass]="{
+                  '!bg-red-100 !text-red-700': alerta.estado === 'ESCALADA',
+                  '!bg-amber-100 !text-amber-700': alerta.estado === 'PENDIENTE',
+                  '!bg-green-100 !text-green-700': alerta.estado === 'ATENDIDA'
+                }" class="!text-[10px] !font-bold !px-2 !min-h-6">
+                  {{ alerta.estado }}
+                </mat-chip>
+              </td>
+            </ng-container>
+            <tr mat-header-row *matHeaderRowDef="['id', 'mensaje', 'rolAsignado', 'fechaLimite', 'estado']"></tr>
+            <tr mat-row *matRowDef="let row; columns: ['id', 'mensaje', 'rolAsignado', 'fechaLimite', 'estado']" class="hover:bg-gray-50 transition-colors"></tr>
+          </table>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>
