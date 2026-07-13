@@ -1,0 +1,157 @@
+<div class="space-y-6">
+  <div>
+    <h1 class="text-2xl md:text-3xl font-bold text-gray-900 uppercase">Catálogo de Tienda</h1>
+    <p class="text-gray-500 text-sm">Gestione las categorías de producto y los proveedores de su comercio.</p>
+  </div>
+
+  <!-- Tabs -->
+  <div class="flex bg-gray-100 p-1 rounded-lg w-fit">
+    <button mat-button (click)="activeTab = 'categorias'"
+      [ngClass]="activeTab === 'categorias' ? '!bg-white !text-gray-900 !shadow-sm' : '!text-gray-500'"
+      class="!px-6 !py-1.5 !font-bold !text-xs !rounded-md !min-w-0">Categorías</button>
+    <button mat-button (click)="activeTab = 'proveedores'"
+      [ngClass]="activeTab === 'proveedores' ? '!bg-white !text-gray-900 !shadow-sm' : '!text-gray-500'"
+      class="!px-6 !py-1.5 !font-bold !text-xs !rounded-md !min-w-0">Proveedores</button>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="lg:col-span-2">
+
+      <!-- Tabla de Categorías -->
+      <mat-card *ngIf="activeTab === 'categorias'" class="!shadow-sm overflow-hidden">
+        <div class="p-4 border-b flex justify-between items-center bg-gray-50/50">
+          <h3 class="font-black text-gray-900 text-sm uppercase">Categorías ({{ categorias.length }})</h3>
+          <button mat-flat-button (click)="loadCategorias()" class="!bg-gray-100 !text-gray-700 !font-bold !text-xs">
+            <mat-icon class="!text-lg mr-1">refresh</mat-icon> Actualizar
+          </button>
+        </div>
+
+        <app-skeleton-rows *ngIf="loadingCategorias" [rows]="5" [columns]="2"></app-skeleton-rows>
+        <div *ngIf="errorCategorias && !loadingCategorias" class="p-4 text-red-700 text-sm">{{ errorCategorias }}</div>
+
+        <div class="overflow-x-auto" *ngIf="!loadingCategorias && !errorCategorias">
+          <table mat-table [dataSource]="categorias" class="w-full">
+            <ng-container matColumnDef="id">
+              <th mat-header-cell *matHeaderCellDef class="!px-6 !py-4 !text-gray-400 !font-bold !text-[11px] !uppercase">ID</th>
+              <td mat-cell *matCellDef="let c" class="!px-6 !py-4 font-bold text-blue-600 text-xs">{{c.id}}</td>
+            </ng-container>
+            <ng-container matColumnDef="nombre">
+              <th mat-header-cell *matHeaderCellDef class="!px-6 !py-4 !text-gray-400 !font-bold !text-[11px] !uppercase">Nombre</th>
+              <td mat-cell *matCellDef="let c" class="!px-6 !py-4 font-bold text-gray-900">{{c.nombre}}</td>
+            </ng-container>
+            <tr mat-header-row *matHeaderRowDef="['id', 'nombre']"></tr>
+            <tr mat-row *matRowDef="let row; columns: ['id', 'nombre']" class="hover:bg-gray-50 transition-colors"></tr>
+          </table>
+        </div>
+        <div *ngIf="!loadingCategorias && categorias.length === 0 && !errorCategorias" class="flex flex-col items-center py-12 px-6 text-center">
+          <mat-icon class="!text-4xl text-gray-300 mb-2">category</mat-icon>
+          <p class="text-gray-400 text-sm">No hay categorías registradas.</p>
+        </div>
+      </mat-card>
+
+      <!-- Tabla de Proveedores -->
+      <mat-card *ngIf="activeTab === 'proveedores'" class="!shadow-sm overflow-hidden">
+        <div class="p-4 border-b flex justify-between items-center bg-gray-50/50">
+          <h3 class="font-black text-gray-900 text-sm uppercase">Proveedores ({{ proveedores.length }})</h3>
+          <button mat-flat-button (click)="loadProveedores()" class="!bg-gray-100 !text-gray-700 !font-bold !text-xs">
+            <mat-icon class="!text-lg mr-1">refresh</mat-icon> Actualizar
+          </button>
+        </div>
+
+        <app-skeleton-rows *ngIf="loadingProveedores" [rows]="5" [columns]="3"></app-skeleton-rows>
+        <div *ngIf="errorProveedores && !loadingProveedores" class="p-4 text-red-700 text-sm">{{ errorProveedores }}</div>
+
+        <div class="overflow-x-auto" *ngIf="!loadingProveedores && !errorProveedores">
+          <table mat-table [dataSource]="proveedores" class="w-full">
+            <ng-container matColumnDef="id">
+              <th mat-header-cell *matHeaderCellDef class="!px-6 !py-4 !text-gray-400 !font-bold !text-[11px] !uppercase">ID</th>
+              <td mat-cell *matCellDef="let p" class="!px-6 !py-4 font-bold text-blue-600 text-xs">{{p.id}}</td>
+            </ng-container>
+            <ng-container matColumnDef="razonSocial">
+              <th mat-header-cell *matHeaderCellDef class="!px-6 !py-4 !text-gray-400 !font-bold !text-[11px] !uppercase">Razón Social</th>
+              <td mat-cell *matCellDef="let p" class="!px-6 !py-4 font-bold text-gray-900">{{p.razonSocial}}</td>
+            </ng-container>
+            <ng-container matColumnDef="rutEmpresa">
+              <th mat-header-cell *matHeaderCellDef class="!px-6 !py-4 !text-gray-400 !font-bold !text-[11px] !uppercase">RUT</th>
+              <td mat-cell *matCellDef="let p" class="!px-6 !py-4 text-xs text-gray-500">{{p.rutEmpresa}}</td>
+            </ng-container>
+            <ng-container matColumnDef="contactoEmail">
+              <th mat-header-cell *matHeaderCellDef class="!px-6 !py-4 !text-gray-400 !font-bold !text-[11px] !uppercase">Contacto</th>
+              <td mat-cell *matCellDef="let p" class="!px-6 !py-4 text-xs text-gray-500">{{p.contactoEmail}}</td>
+            </ng-container>
+            <tr mat-header-row *matHeaderRowDef="['id', 'razonSocial', 'rutEmpresa', 'contactoEmail']"></tr>
+            <tr mat-row *matRowDef="let row; columns: ['id', 'razonSocial', 'rutEmpresa', 'contactoEmail']" class="hover:bg-gray-50 transition-colors"></tr>
+          </table>
+        </div>
+        <div *ngIf="!loadingProveedores && proveedores.length === 0 && !errorProveedores" class="flex flex-col items-center py-12 px-6 text-center">
+          <mat-icon class="!text-4xl text-gray-300 mb-2">local_shipping</mat-icon>
+          <p class="text-gray-400 text-sm">No hay proveedores registrados.</p>
+        </div>
+      </mat-card>
+    </div>
+
+    <!-- Panel lateral: Crear -->
+    <div class="space-y-6">
+      <mat-card *ngIf="activeTab === 'categorias'" class="!shadow-sm">
+        <mat-card-content class="p-6">
+          <div class="flex items-center gap-2 mb-6">
+            <mat-icon class="text-blue-500">add_circle</mat-icon>
+            <h3 class="font-bold text-gray-900 uppercase">Nueva Categoría</h3>
+          </div>
+          <form [formGroup]="categoriaForm" (ngSubmit)="crearCategoria()" class="space-y-4">
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Nombre</mat-label>
+              <input matInput type="text" formControlName="nombre" placeholder="Ej: BEBIDAS" maxlength="50">
+              <mat-error *ngIf="isInvalidCategoria('nombre')">Campo obligatorio</mat-error>
+            </mat-form-field>
+            <button mat-flat-button type="submit"
+              [disabled]="categoriaForm.invalid || guardandoCategoria"
+              [class.opacity-50]="categoriaForm.invalid || guardandoCategoria"
+              [class.cursor-not-allowed]="categoriaForm.invalid || guardandoCategoria"
+              class="!w-full !bg-blue-600 !text-white !py-3 !rounded-xl !font-black !text-[10px] !uppercase !tracking-widest !shadow-lg !shadow-blue-100 hover:!bg-blue-700 disabled:hover:!bg-blue-600">
+              <mat-spinner *ngIf="guardandoCategoria" diameter="16" class="!inline-block !align-middle mr-2 [&_circle]:!stroke-white"></mat-spinner>
+              <mat-icon *ngIf="!guardandoCategoria" class="!text-sm mr-1 align-middle">save</mat-icon>
+              {{ guardandoCategoria ? 'Guardando...' : 'Crear Categoría' }}
+            </button>
+          </form>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card *ngIf="activeTab === 'proveedores'" class="!shadow-sm">
+        <mat-card-content class="p-6">
+          <div class="flex items-center gap-2 mb-6">
+            <mat-icon class="text-blue-500">add_circle</mat-icon>
+            <h3 class="font-bold text-gray-900 uppercase">Nuevo Proveedor</h3>
+          </div>
+          <form [formGroup]="proveedorForm" (ngSubmit)="crearProveedor()" class="space-y-4">
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Razón Social</mat-label>
+              <input matInput type="text" formControlName="razonSocial" placeholder="Ej: Distribuidora Sur SPA" maxlength="100">
+              <mat-error *ngIf="isInvalidProveedor('razonSocial')">Campo obligatorio</mat-error>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>RUT Empresa</mat-label>
+              <input matInput type="text" formControlName="rutEmpresa" placeholder="Ej: 76.111.111-1" maxlength="12">
+              <mat-error *ngIf="isInvalidProveedor('rutEmpresa')">Campo obligatorio</mat-error>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Email de Contacto</mat-label>
+              <input matInput type="email" formControlName="contactoEmail" placeholder="contacto@proveedor.cl" maxlength="100">
+              <mat-error *ngIf="isInvalidProveedor('contactoEmail') && proveedorForm.get('contactoEmail')?.hasError('required')">Campo obligatorio</mat-error>
+              <mat-error *ngIf="isInvalidProveedor('contactoEmail') && proveedorForm.get('contactoEmail')?.hasError('email')">Email inválido</mat-error>
+            </mat-form-field>
+            <button mat-flat-button type="submit"
+              [disabled]="proveedorForm.invalid || guardandoProveedor"
+              [class.opacity-50]="proveedorForm.invalid || guardandoProveedor"
+              [class.cursor-not-allowed]="proveedorForm.invalid || guardandoProveedor"
+              class="!w-full !bg-blue-600 !text-white !py-3 !rounded-xl !font-black !text-[10px] !uppercase !tracking-widest !shadow-lg !shadow-blue-100 hover:!bg-blue-700 disabled:hover:!bg-blue-600">
+              <mat-spinner *ngIf="guardandoProveedor" diameter="16" class="!inline-block !align-middle mr-2 [&_circle]:!stroke-white"></mat-spinner>
+              <mat-icon *ngIf="!guardandoProveedor" class="!text-sm mr-1 align-middle">save</mat-icon>
+              {{ guardandoProveedor ? 'Guardando...' : 'Crear Proveedor' }}
+            </button>
+          </form>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+</div>

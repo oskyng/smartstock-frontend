@@ -1,0 +1,99 @@
+<div class="main-layout">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <!-- Logo / Branding -->
+    <div class="sidebar-header">
+      <div class="logo-icon">S</div>
+      <span class="logo-text">SMARTSTOCK</span>
+    </div>
+
+    <!-- User Info -->
+    <div class="user-info">
+      <div class="user-role-badge">{{ rol }}</div>
+      <div class="user-tenant" *ngIf="idComercio">
+        Comercio ID: {{ idComercio }}
+      </div>
+      <div class="user-tenant" *ngIf="!idComercio && isAdminSistema()">
+        Acceso Global (Sin Comercio)
+      </div>
+    </div>
+
+    <!-- Navigation Menu -->
+    <nav class="sidebar-nav">
+      <!-- ADMIN_SISTEMA -->
+      <div *ngIf="isAdminSistema()" class="menu-section">
+        <p class="menu-section-title">Administración Central</p>
+        <a *ngFor="let item of adminMenu"
+           [routerLink]="item.link"
+           routerLinkActive="menu-item-active"
+           class="menu-item">
+          <span class="menu-icon">{{ item.icon }}</span>
+          <span class="menu-label">{{ item.label }}</span>
+        </a>
+      </div>
+
+      <!-- GERENTE_TIENDA -->
+      <div *ngIf="isGerenteTienda()" class="menu-section">
+        <p class="menu-section-title">Gestión de Tienda</p>
+        <a *ngFor="let item of gerenteMenu"
+           [routerLink]="item.link"
+           routerLinkActive="menu-item-active"
+           class="menu-item">
+          <span class="menu-icon">{{ item.icon }}</span>
+          <span class="menu-label">{{ item.label }}</span>
+        </a>
+      </div>
+
+      <!-- OPERADOR_INVENTARIO -->
+      <div *ngIf="isOperadorInventario()" class="menu-section">
+        <p class="menu-section-title">Logística de Bodega</p>
+        <a *ngFor="let item of operadorMenu"
+           [routerLink]="item.link"
+           routerLinkActive="menu-item-active"
+           class="menu-item">
+          <span class="menu-icon">{{ item.icon }}</span>
+          <span class="menu-label">{{ item.label }}</span>
+        </a>
+      </div>
+
+      <!-- REPONEDOR_SALA -->
+      <div *ngIf="isReponedorSala()" class="menu-section">
+        <p class="menu-section-title">Operaciones de Sala</p>
+        <a *ngFor="let item of reponedorMenu"
+           [routerLink]="item.link"
+           routerLinkActive="menu-item-active"
+           class="menu-item">
+          <span class="menu-icon">{{ item.icon }}</span>
+          <span class="menu-label">{{ item.label }}</span>
+        </a>
+      </div>
+    </nav>
+
+    <!-- Logout Button -->
+    <div class="sidebar-footer">
+      <button class="logout-btn" (click)="logout()">
+        <span class="menu-icon">🚪</span>
+        <span class="menu-label">Cerrar Sesión</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main Content Area -->
+  <div class="main-content">
+    <!-- Top Navbar -->
+    <header class="top-navbar">
+      <div class="navbar-left">
+        <span class="navbar-title">SmartStock — Panel de Control</span>
+      </div>
+      <div class="navbar-right">
+        <span class="navbar-role">{{ rol }}</span>
+        <span class="navbar-tenant" *ngIf="idComercio">| Comercio #{{ idComercio }}</span>
+      </div>
+    </header>
+
+    <!-- Router Outlet -->
+    <main class="content-area">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>

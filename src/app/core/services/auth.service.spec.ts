@@ -37,7 +37,7 @@ describe('AuthService', () => {
     req.flush(mockRes);
 
     expect(localStorage.getItem('ss_token')).toBe('abc123');
-    expect(JSON.parse(localStorage.getItem('ss_user')!)).toEqual({ email: 'test@test.com', rol: 'ADMIN' });
+    expect(JSON.parse(localStorage.getItem('ss_user')!)).toEqual({ email: 'test@test.com', rol: 'ADMIN', idComercio: null });
   });
 
   it('logout should clear storage', () => {
@@ -57,7 +57,20 @@ describe('AuthService', () => {
   it('getUser should return parsed user or null', () => {
     expect(service.getUser()).toBeNull();
     localStorage.setItem('ss_user', JSON.stringify({ email: 'a@b.com', rol: 'USER' }));
-    expect(service.getUser()).toEqual({ email: 'a@b.com', rol: 'USER' });
+    expect(service.getUser()).toEqual({ email: 'a@b.com', rol: 'USER', idComercio: null });
+  });
+
+  it('getRoleLabel should return a human-readable label for known roles', () => {
+    localStorage.setItem('ss_user', JSON.stringify({ email: 'g@b.com', rol: 'GERENTE_TIENDA' }));
+    expect(service.getRoleLabel()).toBe('Gerente de Tienda');
+  });
+
+  it('getComercioLabel should reflect idComercio or global access', () => {
+    localStorage.setItem('ss_user', JSON.stringify({ email: 'a@b.com', rol: 'ADMIN_SISTEMA', idComercio: null }));
+    expect(service.getComercioLabel()).toBe('Acceso Global');
+
+    localStorage.setItem('ss_user', JSON.stringify({ email: 'g@b.com', rol: 'GERENTE_TIENDA', idComercio: 3 }));
+    expect(service.getComercioLabel()).toBe('Comercio #3');
   });
 
   it('isLoggedIn should reflect token presence', () => {

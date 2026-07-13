@@ -1,25 +1,23 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ConfigComponent } from './config.component';
 import { ApiService } from '../../core/services/api.service';
-import { of, throwError } from 'rxjs';
+import { of, throwError, NEVER } from 'rxjs';
 
 describe('ConfigComponent', () => {
   let component: ConfigComponent;
   let fixture: ComponentFixture<ConfigComponent>;
   let apiService: any;
 
-  const mockDashboard = {
-    productos: [],
-    lotesRecientes: [],
-    alertasPendientes: [],
-    reglasActivas: [
-      { id: 1, nombreCategoria: 'Cat', diasCriticosMin: 5, porcentajeDescuento: 30, nombreGerente: 'Admin', activa: 1 }
-    ]
-  };
+  const mockRules = [
+    { id: 1, nombreCategoria: 'Cat', diasCriticosMin: 5, porcentajeDescuento: 30, nombreGerente: 'Admin', activa: 1 }
+  ];
 
   beforeEach(async () => {
     apiService = {
-      getDashboard: vi.fn().mockReturnValue(of(mockDashboard))
+      getReglas: vi.fn().mockReturnValue(of(mockRules)),
+      crearRegla: vi.fn().mockReturnValue(of({})),
+      eliminarRegla: vi.fn().mockReturnValue(of(undefined)),
+      getCategorias: vi.fn().mockReturnValue(of([{ id: 1, nombre: 'Lácteos' }]))
     };
 
     await TestBed.configureTestingModule({
@@ -38,16 +36,32 @@ describe('ConfigComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should load rules from dashboard', () => {
-    expect(apiService.getDashboard).toHaveBeenCalled();
-    expect(component.rules.length).toBe(1);
+  it('should load rules on init', () => {
+    expect(apiService.getReglas).toHaveBeenCalled();
+    expect(component.rules).toEqual(mockRules);
     expect(component.loading).toBe(false);
   });
 
   it('should set error on load failure', () => {
-    apiService.getDashboard.mockReturnValue(throwError(() => new Error('fail')));
+    apiService.getReglas.mockReturnValue(throwError(() => new Error('fail')));
     component.ngOnInit();
     expect(component.error).toBe('Error al cargar reglas de depreciación.');
     expect(component.loading).toBe(false);
+  });
+
+  it('idCategoria must stay enabled and required while categorias are still loading (regression: disabled controls are silently excluded from FormGroup.value/invalid)', () => {
+    apiService.getCategorias.mockReturnValue(NEVER);
+    component.ngOnInit();
+
+    const idCategoriaControl = component.reglaForm.get('idCategoria');
+    expect(component.cargandoCategorias).toBe(true);
+    expect(idCategoriaControl?.disabled).toBe(false);
+
+    component.reglaForm.patchValue({ diasCriticosMin: 5, porcentajeDescuento: 20 });
+    expect(component.reglaForm.value.idCategoria).toBeNull();
+    expect(component.reglaForm.invalid).toBe(true);
+
+    component.crearRegla();
+    expect(apiService.crearRegla).not.toHaveBeenCalled();
   });
 });

@@ -1,27 +1,40 @@
-<div *ngIf="loading" class="flex items-center justify-center h-64">
-  <mat-spinner diameter="40"></mat-spinner>
+<div *ngIf="error && !loading" class="p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 font-medium flex items-center justify-between gap-2">
+  <div class="flex items-center gap-2">
+    <mat-icon class="text-red-600">error</mat-icon>
+    {{ error }}
+  </div>
+  <button mat-button (click)="cargarDashboard()" class="!text-red-700 !font-bold !text-xs">Reintentar</button>
 </div>
 
-<div *ngIf="error" class="p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 font-medium flex items-center gap-2">
-  <mat-icon class="text-red-600">error</mat-icon>
-  {{ error }}
-</div>
-
-<div class="space-y-6" *ngIf="!loading && !error">
-  <div class="flex justify-between items-end">
+<div class="space-y-6" *ngIf="!error">
+  <div class="flex justify-between items-end flex-wrap gap-3">
     <div>
-      <h1 class="text-3xl font-bold text-gray-900">Dashboard Gerencial</h1>
-      <p class="text-gray-500">Estado financiero y operativo del inventario.</p>
+      <h1 class="text-2xl md:text-3xl font-bold text-gray-900">Dashboard Gerencial</h1>
+      <p class="text-gray-500 text-sm">Estado financiero y operativo del inventario.</p>
     </div>
     <div class="flex items-center gap-4">
-      <div class="text-right">
+      <div class="text-right hidden sm:block">
         <p class="text-[10px] text-gray-500 font-bold uppercase">Período Actual</p>
         <p class="text-sm font-bold">{{ today | date:'MMMM yyyy' }}</p>
       </div>
+      <button mat-icon-button (click)="cargarDashboard()" matTooltip="Actualizar" class="!text-gray-500">
+        <mat-icon>refresh</mat-icon>
+      </button>
     </div>
   </div>
 
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+  <!-- Skeleton de tarjetas de estadísticas -->
+  <div *ngIf="loading" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <mat-card *ngFor="let s of [1,2,3]" class="!shadow-sm">
+      <mat-card-content class="p-6 space-y-4">
+        <span class="skeleton-block h-10 w-10 !rounded-lg"></span>
+        <span class="skeleton-block h-3 w-1/2"></span>
+        <span class="skeleton-block h-6 w-1/3"></span>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6" *ngIf="!loading">
     <mat-card class="!shadow-sm">
       <mat-card-content class="p-6">
         <div class="flex justify-between items-start">
@@ -65,7 +78,7 @@
     </mat-card>
   </div>
 
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6" *ngIf="!loading">
     <mat-card class="lg:col-span-2 !shadow-sm h-80">
       <mat-card-content class="p-6">
         <div class="flex justify-between items-center mb-6">
@@ -136,12 +149,15 @@
         <p class="text-xs text-gray-500">Estado de los lotes de inventario registrados en el sistema.</p>
       </div>
     </div>
-    <div class="overflow-x-auto">
+
+    <app-skeleton-rows *ngIf="loading" [rows]="4" [columns]="5"></app-skeleton-rows>
+
+    <div class="overflow-x-auto" *ngIf="!loading">
       <table mat-table [dataSource]="lotes" class="w-full">
         <ng-container matColumnDef="nombreProducto">
           <th mat-header-cell *matHeaderCellDef class="!px-6 !py-3 !text-gray-400 !font-bold !text-[10px] !uppercase !bg-gray-50">Producto</th>
-          <td mat-cell *matCellDef="let lote" class="!px-6 !py-4">
-            <p class="font-bold text-gray-900">{{ lote.nombreProducto }}</p>
+          <td mat-cell *matCellDef="let lote" class="!px-6 !py-4 max-w-[200px]">
+            <p class="font-bold text-gray-900 text-truncate-tooltip" [matTooltip]="lote.nombreProducto">{{ lote.nombreProducto }}</p>
           </td>
         </ng-container>
         <ng-container matColumnDef="cantidadActual">
@@ -171,7 +187,10 @@
         <tr mat-header-row *matHeaderRowDef="['nombreProducto', 'cantidadActual', 'precioDinamico', 'fechaVencimiento', 'estadoLote']"></tr>
         <tr mat-row *matRowDef="let row; columns: ['nombreProducto', 'cantidadActual', 'precioDinamico', 'fechaVencimiento', 'estadoLote']" class="hover:bg-gray-50 transition-colors"></tr>
       </table>
-      <div *ngIf="lotes.length === 0" class="px-6 py-8 text-center text-gray-400">No hay lotes registrados.</div>
+      <div *ngIf="lotes.length === 0" class="flex flex-col items-center py-10 px-6 text-center">
+        <mat-icon class="!text-3xl text-gray-300 mb-2">inbox</mat-icon>
+        <p class="text-gray-400 text-sm">No hay lotes registrados.</p>
+      </div>
     </div>
   </mat-card>
 </div>

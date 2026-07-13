@@ -1,0 +1,206 @@
+<div class="space-y-6">
+  <div>
+    <h1 class="text-2xl md:text-3xl font-bold text-gray-900 uppercase">Gestión de Usuarios</h1>
+    <p class="text-gray-500 text-sm mt-1">
+      {{ esAdmin
+        ? 'Cree, actualice o elimine usuarios de cualquier rol del sistema.'
+        : 'Cree, actualice o elimine usuarios operativos (Operador de Inventario o Reponedor de Sala) de su comercio.' }}
+    </p>
+  </div>
+
+  <div *ngIf="mensajeExito" class="p-4 bg-green-50 border border-green-200 rounded-xl text-green-700 font-medium flex items-center gap-2">
+    <mat-icon class="text-green-600">check_circle</mat-icon>
+    {{ mensajeExito }}
+  </div>
+  <div *ngIf="mensajeError" class="p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 font-medium flex items-center gap-2">
+    <mat-icon class="text-red-600">error</mat-icon>
+    {{ mensajeError }}
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="lg:col-span-2">
+      <!-- Tabla de Usuarios -->
+      <mat-card class="!shadow-sm overflow-hidden">
+        <div class="p-4 border-b flex justify-between items-center bg-gray-50/50">
+          <h3 class="font-black text-gray-900 text-sm uppercase">Usuarios Registrados ({{ usuarios.length }})</h3>
+          <button mat-flat-button (click)="cargarUsuarios()" class="!bg-gray-100 !text-gray-700 !font-bold !text-xs">
+            <mat-icon class="!text-lg mr-1">refresh</mat-icon> Actualizar
+          </button>
+        </div>
+
+        <app-skeleton-rows *ngIf="cargandoUsuarios" [rows]="5" [columns]="5"></app-skeleton-rows>
+
+        <div *ngIf="errorUsuarios && !cargandoUsuarios" class="p-4 text-red-700 text-sm">{{ errorUsuarios }}</div>
+
+        <div class="overflow-x-auto" *ngIf="!cargandoUsuarios && !errorUsuarios">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b bg-gray-50/50">
+                <th class="!px-6 !py-4 !text-gray-400 !font-bold !text-[11px] !uppercase text-left">Nombre</th>
+                <th class="!px-6 !py-4 !text-gray-400 !font-bold !text-[11px] !uppercase text-left">Email</th>
+                <th class="!px-6 !py-4 !text-gray-400 !font-bold !text-[11px] !uppercase text-left">Rol</th>
+                <th class="!px-6 !py-4 !text-gray-400 !font-bold !text-[11px] !uppercase text-center">Estado</th>
+                <th class="!px-6 !py-4 !text-gray-400 !font-bold !text-[11px] !uppercase text-right">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <ng-container *ngFor="let u of usuarios">
+                <!-- Fila normal -->
+                <tr *ngIf="editandoId !== u.id" class="border-b hover:bg-gray-50 transition-colors">
+                  <td class="!px-6 !py-4 font-bold text-gray-900">{{ u.nombre }} {{ u.apellido }}</td>
+                  <td class="!px-6 !py-4 text-xs text-gray-500">{{ u.email }}</td>
+                  <td class="!px-6 !py-4">
+                    <mat-chip class="!text-xs !bg-gray-100 !text-gray-600 !border !border-gray-200">{{ getRoleLabel(u.rol) }}</mat-chip>
+                  </td>
+                  <td class="!px-6 !py-4 text-center">
+                    <mat-chip [ngClass]="u.activo === 1 ? '!bg-green-50 !text-green-700 !border-green-200' : '!bg-gray-100 !text-gray-500 !border-gray-200'" class="!text-[10px] !font-black !uppercase !border">
+                      {{ u.activo === 1 ? 'Activo' : 'Inactivo' }}
+                    </mat-chip>
+                  </td>
+                  <td class="!px-6 !py-4 !text-right">
+                    <ng-container *ngIf="puedeGestionar(u); else sinPermiso">
+                      <button mat-icon-button matTooltip="Editar" (click)="iniciarEdicion(u)">
+                        <mat-icon class="!text-lg">edit</mat-icon>
+                      </button>
+                      <button mat-icon-button color="warn" matTooltip="Desactivar" [disabled]="u.activo === 0" (click)="eliminarUsuario(u)">
+                        <mat-icon class="!text-lg">delete</mat-icon>
+                      </button>
+                    </ng-container>
+                    <ng-template #sinPermiso>
+                      <span class="text-[10px] text-gray-300 font-bold uppercase">Sin acceso</span>
+                    </ng-template>
+                  </td>
+                </tr>
+
+                <!-- Fila de edición inline -->
+                <tr *ngIf="editandoId === u.id" [formGroup]="editForm" class="border-b bg-blue-50/40">
+                  <td class="!px-3 !py-3" colspan="2">
+                    <div class="flex gap-2">
+                      <mat-form-field appearance="outline" class="w-full !text-xs">
+                        <mat-label>Nombre</mat-label>
+                        <input matInput type="text" formControlName="nombre" maxlength="50">
+                      </mat-form-field>
+                      <mat-form-field appearance="outline" class="w-full !text-xs">
+                        <mat-label>Apellido</mat-label>
+                        <input matInput type="text" formControlName="apellido" maxlength="50">
+                      </mat-form-field>
+                    </div>
+                    <mat-form-field appearance="outline" class="w-full !text-xs">
+                      <mat-label>Email</mat-label>
+                      <input matInput type="email" formControlName="email" maxlength="100">
+                      <mat-error *ngIf="isEditInvalid('email')">Email inválido.</mat-error>
+                    </mat-form-field>
+                  </td>
+                  <td class="!px-3 !py-3" colspan="1">
+                    <mat-form-field appearance="outline" class="w-full !text-xs">
+                      <mat-label>Rol</mat-label>
+                      <mat-select formControlName="idRol">
+                        <mat-option *ngFor="let rol of roles" [value]="rol.id">{{ getRoleLabel(rol.nombre) }}</mat-option>
+                      </mat-select>
+                    </mat-form-field>
+                  </td>
+                  <td class="!px-3 !py-3 !text-right" colspan="2">
+                    <button mat-icon-button color="primary" matTooltip="Guardar" [disabled]="editForm.invalid || guardandoEdicion" (click)="guardarEdicion(u.id)">
+                      <mat-spinner *ngIf="guardandoEdicion" diameter="18"></mat-spinner>
+                      <mat-icon *ngIf="!guardandoEdicion">check</mat-icon>
+                    </button>
+                    <button mat-icon-button matTooltip="Cancelar" [disabled]="guardandoEdicion" (click)="cancelarEdicion()">
+                      <mat-icon>close</mat-icon>
+                    </button>
+                  </td>
+                </tr>
+              </ng-container>
+            </tbody>
+          </table>
+        </div>
+        <div *ngIf="!cargandoUsuarios && usuarios.length === 0 && !errorUsuarios" class="flex flex-col items-center py-12 px-6 text-center">
+          <mat-icon class="!text-4xl text-gray-300 mb-2">group_off</mat-icon>
+          <p class="text-gray-400 text-sm">No hay usuarios registrados.</p>
+        </div>
+      </mat-card>
+    </div>
+
+    <!-- Panel lateral: Crear Usuario -->
+    <div class="space-y-6">
+      <mat-card class="!shadow-sm">
+        <mat-card-content class="p-6">
+          <div class="flex items-center gap-2 mb-6">
+            <mat-icon class="text-blue-500">person_add</mat-icon>
+            <h3 class="font-bold text-gray-900 uppercase">Nuevo Usuario</h3>
+          </div>
+
+          <!-- Skeleton mientras se carga el catálogo de roles -->
+          <div *ngIf="cargandoRoles" class="space-y-4">
+            <span class="skeleton-block h-14 w-full"></span>
+            <span class="skeleton-block h-14 w-full"></span>
+            <span class="skeleton-block h-14 w-full"></span>
+          </div>
+
+          <form *ngIf="!cargandoRoles" [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-4">
+
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>RUT</mat-label>
+              <input matInput type="text" formControlName="rut" placeholder="Ej: 11.111.111-1" maxlength="12">
+              <mat-error *ngIf="isInvalid('rut')">El RUT es obligatorio.</mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Email</mat-label>
+              <input matInput type="email" formControlName="email" placeholder="usuario@smartstock.cl" maxlength="100">
+              <mat-error *ngIf="isInvalid('email') && form.get('email')?.hasError('required')">El email es obligatorio.</mat-error>
+              <mat-error *ngIf="isInvalid('email') && form.get('email')?.hasError('email')">Email inválido.</mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Nombre</mat-label>
+              <input matInput type="text" formControlName="nombre" placeholder="Ej: Juana" maxlength="50">
+              <mat-error *ngIf="isInvalid('nombre')">El nombre es obligatorio.</mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Apellido</mat-label>
+              <input matInput type="text" formControlName="apellido" placeholder="Ej: Pérez" maxlength="50">
+              <mat-error *ngIf="isInvalid('apellido')">El apellido es obligatorio.</mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Contraseña</mat-label>
+              <input matInput type="password" formControlName="password" placeholder="Mínimo 8 caracteres">
+              <mat-error *ngIf="isInvalid('password') && form.get('password')?.hasError('required')">La contraseña es obligatoria.</mat-error>
+              <mat-error *ngIf="isInvalid('password') && form.get('password')?.hasError('minlength')">Debe tener al menos 8 caracteres.</mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="w-full">
+              <mat-label>Rol</mat-label>
+              <mat-select formControlName="idRol">
+                <mat-option *ngFor="let rol of roles" [value]="rol.id">{{ getRoleLabel(rol.nombre) }}</mat-option>
+              </mat-select>
+              <mat-error *ngIf="isInvalid('idRol')">Debe seleccionar un rol.</mat-error>
+              <mat-hint *ngIf="roles.length === 0">No hay roles disponibles para asignar.</mat-hint>
+            </mat-form-field>
+
+            <mat-form-field *ngIf="esAdmin" appearance="outline" class="w-full">
+              <mat-label>Comercio</mat-label>
+              <mat-select formControlName="idComercio">
+                <mat-option [value]="null">Sin comercio (Administrador Global)</mat-option>
+                <mat-option *ngFor="let c of comercios" [value]="c.id">{{ c.razonSocial }}</mat-option>
+              </mat-select>
+              <mat-hint *ngIf="cargandoComercios">Cargando comercios…</mat-hint>
+              <mat-hint *ngIf="!cargandoComercios">Déjelo vacío para un usuario ADMIN_SISTEMA sin comercio asociado.</mat-hint>
+            </mat-form-field>
+
+            <button mat-flat-button type="submit"
+                    [disabled]="form.invalid || guardando || roles.length === 0"
+                    [class.opacity-50]="form.invalid || guardando || roles.length === 0"
+                    [class.cursor-not-allowed]="form.invalid || guardando || roles.length === 0"
+                    class="!w-full !bg-blue-600 !text-white !py-3 !rounded-xl !font-black !text-xs !uppercase !tracking-widest !shadow-lg !shadow-blue-100 hover:!bg-blue-700 disabled:hover:!bg-blue-600">
+              <mat-spinner *ngIf="guardando" diameter="18" class="!inline-block !align-middle mr-2 [&_circle]:!stroke-white"></mat-spinner>
+              <mat-icon *ngIf="!guardando" class="!text-sm mr-1 align-middle">person_add</mat-icon>
+              {{ guardando ? 'Creando...' : 'Crear Usuario' }}
+            </button>
+          </form>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+</div>

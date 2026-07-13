@@ -1,0 +1,96 @@
+<div class="max-w-3xl mx-auto space-y-6">
+  <div>
+    <h1 class="text-2xl md:text-3xl font-bold text-gray-900 uppercase">Ingreso de Mercancía</h1>
+    <p class="text-gray-500 text-sm mt-1">Registro de lotes — control de mermas y vencimientos (CA-03).</p>
+  </div>
+
+  <div *ngIf="mensajeExito" class="p-4 bg-green-50 border border-green-200 rounded-xl text-green-700 font-medium flex items-center gap-2">
+    <mat-icon class="text-green-600">check_circle</mat-icon>
+    {{ mensajeExito }}
+  </div>
+  <div *ngIf="mensajeError" class="p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 font-medium flex items-center gap-2">
+    <mat-icon class="text-red-600">error</mat-icon>
+    {{ mensajeError }}
+  </div>
+
+  <mat-card class="!shadow-sm">
+    <mat-card-content class="p-6 md:p-8">
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
+
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>ID Producto</mat-label>
+          <input matInput type="number" formControlName="idProducto" placeholder="Ej: 1" min="1" step="1">
+          <mat-error *ngIf="isInvalid('idProducto')">
+            {{ form.get('idProducto')?.hasError('required') ? 'El ID del producto es obligatorio.' : 'Debe ser al menos 1.' }}
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>ID Proveedor</mat-label>
+          <input matInput type="number" formControlName="idProveedor" placeholder="Ej: 1" min="1" step="1">
+          <mat-error *ngIf="isInvalid('idProveedor')">
+            {{ form.get('idProveedor')?.hasError('required') ? 'El ID del proveedor es obligatorio.' : 'Debe ser al menos 1.' }}
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Cantidad Inicial</mat-label>
+          <input matInput type="number" formControlName="cantidadInicial" placeholder="Ej: 100" min="1" [max]="maxCantidad" step="1">
+          <mat-error *ngIf="isInvalid('cantidadInicial')">
+            <span *ngIf="form.get('cantidadInicial')?.hasError('required')">La cantidad es obligatoria.</span>
+            <span *ngIf="form.get('cantidadInicial')?.hasError('min')">La cantidad debe ser al menos 1.</span>
+            <span *ngIf="form.get('cantidadInicial')?.hasError('max')">La cantidad supera el máximo permitido.</span>
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Costo Unitario</mat-label>
+          <span matTextPrefix>$&nbsp;</span>
+          <input matInput type="number" formControlName="costoUnitario" step="0.01" min="0.01" [max]="maxMonto" placeholder="Ej: 500.00">
+          <mat-error *ngIf="isInvalid('costoUnitario')">
+            <span *ngIf="form.get('costoUnitario')?.hasError('required')">El costo unitario es obligatorio.</span>
+            <span *ngIf="form.get('costoUnitario')?.hasError('min')">El costo debe ser mayor a 0.</span>
+            <span *ngIf="form.get('costoUnitario')?.hasError('max')">El costo supera el máximo permitido.</span>
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Precio Dinámico Inicial</mat-label>
+          <span matTextPrefix>$&nbsp;</span>
+          <input matInput type="number" formControlName="precioDinamico" step="0.01" min="0.01" [max]="maxMonto" placeholder="Ej: 800.00">
+          <mat-error *ngIf="isInvalid('precioDinamico')">
+            <span *ngIf="form.get('precioDinamico')?.hasError('required')">El precio es obligatorio.</span>
+            <span *ngIf="form.get('precioDinamico')?.hasError('min')">El precio debe ser mayor a 0.</span>
+            <span *ngIf="form.get('precioDinamico')?.hasError('max')">El precio supera el máximo permitido.</span>
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Fecha de Vencimiento</mat-label>
+          <input matInput type="date" formControlName="fechaVencimiento" [min]="fechaMinima">
+          <mat-error *ngIf="isInvalid('fechaVencimiento') && form.get('fechaVencimiento')?.hasError('required')">
+            La fecha de vencimiento es obligatoria.
+          </mat-error>
+        </mat-form-field>
+
+        <div *ngIf="form.get('fechaVencimiento')?.hasError('fechaPasada')"
+             class="sm:col-span-2 p-3 -mt-1 mb-2 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm font-medium flex items-start gap-2">
+          <mat-icon class="!text-lg text-red-600 shrink-0">warning</mat-icon>
+          <span>{{ mensajeFechaInvalida }}.</span>
+        </div>
+
+        <div class="sm:col-span-2 mt-2">
+          <button mat-flat-button type="submit"
+                  [disabled]="form.invalid || enviando"
+                  [class.opacity-50]="form.invalid || enviando"
+                  [class.cursor-not-allowed]="form.invalid || enviando"
+                  class="!w-full !bg-blue-600 !text-white !py-3 !rounded-xl !font-black !text-xs !uppercase !tracking-widest !shadow-lg !shadow-blue-100 hover:!bg-blue-700 disabled:hover:!bg-blue-600">
+            <mat-spinner *ngIf="enviando" diameter="18" class="!inline-block !align-middle mr-2 [&_circle]:!stroke-white"></mat-spinner>
+            <mat-icon *ngIf="!enviando" class="!text-sm mr-1 align-middle">save</mat-icon>
+            {{ enviando ? 'Registrando...' : 'Registrar Lote' }}
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>

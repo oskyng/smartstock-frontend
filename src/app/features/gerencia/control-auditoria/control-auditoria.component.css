@@ -1,0 +1,56 @@
+@keyframes fila-escalada-flash {
+  0%,
+  100% {
+    background-color: transparent;
+  }
+  25%,
+  75% {
+    background-color: rgba(220, 38, 38, 0.16);
+  }
+}
+
+.fila-flash {
+  animation: fila-escalada-flash 1s ease-in-out 3;
+}
+
+@keyframes modal-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modal-panel-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.modal-overlay {
+  animation: modal-fade-in 0.15s ease-out;
+}
+
+.modal-panel {
+  animation: modal-panel-in 0.18s ease-out;
+}
+
+@keyframes live-dot-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.live-dot {
+  animation: live-dot-pulse 1.4s ease-in-out infinite;
+}

@@ -1,22 +1,28 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { AdminGlobalComponent } from './admin-global.component';
-import { MockDataService } from '../../core/services/mock-data.service';
+import { AdminService } from './services/admin.service';
 import { of } from 'rxjs';
 
 describe('AdminGlobalComponent', () => {
   let component: AdminGlobalComponent;
   let fixture: ComponentFixture<AdminGlobalComponent>;
-  let mockService: any;
+  let adminService: any;
 
   beforeEach(async () => {
-    mockService = {
-      getTenants: vi.fn().mockReturnValue(of([]))
+    adminService = {
+      obtenerComercios: vi.fn().mockReturnValue(of([]))
     };
 
     await TestBed.configureTestingModule({
       imports: [AdminGlobalComponent],
       providers: [
-        { provide: MockDataService, useValue: mockService }
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideNoopAnimations(),
+        { provide: AdminService, useValue: adminService }
       ]
     }).compileComponents();
 
@@ -29,13 +35,13 @@ describe('AdminGlobalComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should load tenants on init', () => {
-    const mockTenants = [{ id: 'TEN-001', razonSocial: 'Test Tenant' }];
-    mockService.getTenants.mockReturnValue(of(mockTenants));
+  it('should load comercios on init', () => {
+    const mockComercios = [{ id: 1, rutEmpresa: '76.123.456-7', razonSocial: 'Test Tenant', rubro: 'Retail' }];
+    adminService.obtenerComercios.mockReturnValue(of(mockComercios));
 
     component.ngOnInit();
 
-    expect(component.tenants).toEqual(mockTenants);
-    expect(mockService.getTenants).toHaveBeenCalled();
+    expect(component.comercios).toEqual(mockComercios);
+    expect(adminService.obtenerComercios).toHaveBeenCalled();
   });
 });

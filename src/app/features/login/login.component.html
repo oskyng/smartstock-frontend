@@ -33,22 +33,24 @@
           </mat-form-field>
         </div>
 
-        <mat-checkbox class="!text-xs !font-bold text-gray-600">Recordar mi sesión en este dispositivo</mat-checkbox>
+        <mat-checkbox class="remember-checkbox">Recordar mi sesión en este dispositivo</mat-checkbox>
 
-        <div *ngIf="errorMessage" class="p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700 font-medium flex items-center gap-2">
-          <mat-icon class="!text-red-600 !text-lg">error</mat-icon>
+        <div *ngIf="errorMessage" class="error-box">
+          <mat-icon>error</mat-icon>
           {{ errorMessage }}
         </div>
 
-        <button mat-flat-button color="primary" type="submit" [disabled]="loading" class="!w-full !py-4 !rounded-xl !shadow-lg !shadow-blue-200 !font-bold !text-base !bg-blue-500 hover:!bg-blue-600 disabled:!opacity-50">
-          <mat-spinner *ngIf="loading" diameter="20" class="inline-block mr-2"></mat-spinner>
-          {{ loading ? 'Ingresando...' : 'Ingresar al Sistema' }}
+        <button mat-flat-button type="submit" [disabled]="loading" class="login-btn">
+          <span class="flex items-center justify-center gap-2">
+            <mat-spinner *ngIf="loading" diameter="20"></mat-spinner>
+            {{ loading ? 'Ingresando...' : 'Ingresar al Sistema' }}
+          </span>
         </button>
       </form>
 
-      <div class="mt-8 p-4 bg-blue-50 rounded-xl border border-blue-100 flex gap-3">
-        <mat-icon class="text-blue-500">info</mat-icon>
-        <p class="text-[10px] text-blue-700 leading-normal">Este sistema está protegido. El acceso no autorizado está estrictamente prohibido y monitoreado.</p>
+      <div class="info-box">
+        <mat-icon>info</mat-icon>
+        <p>Este sistema está protegido. El acceso no autorizado está estrictamente prohibido y monitoreado.</p>
       </div>
     </mat-card-content>
   </mat-card>

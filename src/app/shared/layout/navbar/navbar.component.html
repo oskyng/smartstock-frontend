@@ -1,23 +1,22 @@
-<mat-toolbar class="!bg-white border-b !h-16 flex items-center justify-between !px-6">
-  <div class="flex-1 max-w-xl">
+<mat-toolbar class="!bg-white border-b !h-16 flex items-center justify-between !px-3 md:!px-6 sticky top-0 z-10">
+  <button mat-icon-button class="md:!hidden !mr-1" (click)="menuToggle.emit()" aria-label="Abrir menú">
+    <mat-icon>menu</mat-icon>
+  </button>
+  <div class="flex-1 max-w-xl hidden sm:block">
     <mat-form-field appearance="outline" class="w-full !text-sm" subscriptSizing="dynamic">
       <mat-icon matPrefix class="text-gray-400 mr-1">search</mat-icon>
       <input matInput type="text" placeholder="Buscar productos o lotes...">
     </mat-form-field>
   </div>
-  <div class="flex items-center gap-6">
+  <div class="flex items-center gap-3 md:gap-6 ml-auto">
     <div class="text-right hidden sm:block">
-      <p class="text-[11px] font-black text-gray-900 uppercase tracking-tighter">Administrador</p>
-      <p class="text-[10px] text-gray-500 font-bold">Minimarket Alameda</p>
+      <p class="text-[11px] font-black text-gray-900 uppercase tracking-tighter">{{ roleLabel }}</p>
+      <p class="text-[10px] text-gray-500 font-bold">{{ comercioLabel }}</p>
     </div>
-    <button mat-icon-button matBadge="1" matBadgeSize="small" matBadgeColor="warn" class="text-gray-400 hover:text-blue-600">
-      <mat-icon>notifications</mat-icon>
-    </button>
-    <div class="flex items-center gap-3 pl-4 border-l">
-      <img src="https://i.pravatar.cc/150?u=admin" alt="Admin" class="w-8 h-8 rounded-full border-2 border-blue-100 shadow-sm">
-      <button mat-stroked-button (click)="logout()" class="!text-[10px] !font-black !uppercase !tracking-wider text-gray-700 hover:!bg-red-50 hover:!text-red-600 hover:!border-red-100 transition-all">
-        <mat-icon class="!text-sm !w-4 !h-4 mr-1">logout</mat-icon>
-        Cerrar Sesión
+    <div class="flex items-center gap-3 pl-2 md:pl-4 border-l">
+      <button mat-stroked-button (click)="logout()" matTooltip="Cerrar sesión" class="!text-[10px] !font-black !uppercase !tracking-wider text-gray-700 hover:!bg-red-50 hover:!text-red-600 hover:!border-red-100 transition-all !min-w-0 !px-2 md:!px-4">
+        <mat-icon class="!text-sm !w-4 !h-4 md:mr-1">logout</mat-icon>
+        <span class="hidden md:inline">Cerrar Sesión</span>
       </button>
     </div>
   </div>

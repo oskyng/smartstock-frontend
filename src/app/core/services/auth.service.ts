@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { getRoleLabel } from '../utils/role-label.util';
 
 export interface AuthRequest {
   email: string;
@@ -12,6 +13,13 @@ export interface AuthResponse {
   token: string;
   email: string;
   rol: string;
+  idComercio?: number;
+}
+
+export interface StoredUser {
+  email: string;
+  rol: string;
+  idComercio: number | null;
 }
 
 @Injectable({
@@ -29,8 +37,17 @@ export class AuthService {
   login(credentials: AuthRequest): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.API}/auth/login`, credentials).pipe(
       tap(res => {
+        const idComercio = res.idComercio ?? null;
         localStorage.setItem(this.tokenKey, res.token);
-        localStorage.setItem(this.userKey, JSON.stringify({ email: res.email, rol: res.rol }));
+        localStorage.setItem(this.userKey, JSON.stringify({ email: res.email, rol: res.rol, idComercio }));
+        localStorage.setItem('rol', res.rol);
+        if (idComercio !== null) {
+          localStorage.setItem('ss_comercio_id', idComercio.toString());
+          localStorage.setItem('idComercio', idComercio.toString());
+        } else {
+          localStorage.removeItem('ss_comercio_id');
+          localStorage.removeItem('idComercio');
+        }
         this.loggedIn$.next(true);
       })
     );
@@ -39,6 +56,9 @@ export class AuthService {
   logout(): void {
     localStorage.removeItem(this.tokenKey);
     localStorage.removeItem(this.userKey);
+    localStorage.removeItem('ss_comercio_id');
+    localStorage.removeItem('rol');
+    localStorage.removeItem('idComercio');
     this.loggedIn$.next(false);
   }
 
@@ -46,9 +66,28 @@ export class AuthService {
     return localStorage.getItem(this.tokenKey);
   }
 
-  getUser(): { email: string; rol: string } | null {
+  getUser(): StoredUser | null {
     const raw = localStorage.getItem(this.userKey);
-    return raw ? JSON.parse(raw) : null;
+    if (!raw) {
+      return null;
+    }
+    const parsed = JSON.parse(raw);
+    return {
+      email: parsed.email,
+      rol: parsed.rol,
+      idComercio: parsed.idComercio ?? null
+    };
+  }
+
+  /** Nombre legible del rol para mostrar en la UI (ej. "Gerente de Tienda"). */
+  getRoleLabel(): string {
+    return getRoleLabel(this.getUser()?.rol);
+  }
+
+  /** Etiqueta del comercio activo: ID del comercio, o alcance global para ADMIN_SISTEMA. */
+  getComercioLabel(): string {
+    const idComercio = this.getUser()?.idComercio;
+    return idComercio ? `Comercio #${idComercio}` : 'Acceso Global';
   }
 
   isLoggedIn(): boolean {

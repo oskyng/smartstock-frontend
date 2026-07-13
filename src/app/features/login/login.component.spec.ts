@@ -42,8 +42,8 @@ describe('LoginComponent', () => {
     expect(router.navigate).toHaveBeenCalledWith(['/dashboard']);
   });
 
-  it('should set error message on login failure', () => {
-    authService.login.mockReturnValue(throwError(() => ({ error: { message: 'Bad credentials' } })));
+  it('should set error message on login failure with 403', () => {
+    authService.login.mockReturnValue(throwError(() => ({ status: 403, error: { message: 'Bad credentials' } })));
     component.email = 'bad@test.com';
     component.password = 'wrong';
     component.onLogin();
@@ -51,9 +51,36 @@ describe('LoginComponent', () => {
     expect(component.loading).toBe(false);
   });
 
-  it('should set default error message when no message in error', () => {
-    authService.login.mockReturnValue(throwError(() => ({ error: {} })));
+  it('should set default error message when no message in 401 error', () => {
+    authService.login.mockReturnValue(throwError(() => ({ status: 401, error: {} })));
+    component.email = 'bad@test.com';
+    component.password = 'wrong';
     component.onLogin();
     expect(component.errorMessage).toBe('Credenciales inv\u00e1lidas. Intente nuevamente.');
+  });
+
+  it('should show connection error when status is 0', () => {
+    authService.login.mockReturnValue(throwError(() => ({ status: 0 })));
+    component.email = 'test@test.com';
+    component.password = '123';
+    component.onLogin();
+    expect(component.errorMessage).toBe('No se pudo conectar con el servidor. Verifique su conexi\u00f3n.');
+  });
+
+  it('should show server error when status >= 500', () => {
+    authService.login.mockReturnValue(throwError(() => ({ status: 500 })));
+    component.email = 'test@test.com';
+    component.password = '123';
+    component.onLogin();
+    expect(component.errorMessage).toBe('Error interno del servidor. Intente m\u00e1s tarde.');
+  });
+
+  it('should show validation error when fields are empty', () => {
+    component.email = '';
+    component.password = '';
+    component.onLogin();
+    expect(component.errorMessage).toBe('Debe ingresar su email y contrase\u00f1a.');
+    expect(authService.login).not.toHaveBeenCalled();
+    expect(component.loading).toBe(false);
   });
 });

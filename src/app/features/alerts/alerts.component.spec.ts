@@ -1,23 +1,32 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { AlertsComponent } from './alerts.component';
 import { ApiService } from '../../core/services/api.service';
+import { ToastService } from '../../core/services/toast.service';
 import { of, throwError } from 'rxjs';
 
 describe('AlertsComponent', () => {
   let component: AlertsComponent;
   let fixture: ComponentFixture<AlertsComponent>;
   let apiService: any;
+  let toastService: any;
 
   beforeEach(async () => {
     apiService = {
       getAlertas: vi.fn().mockReturnValue(of([])),
       atenderAlerta: vi.fn().mockReturnValue(of(undefined))
     };
+    toastService = {
+      success: vi.fn(),
+      error: vi.fn(),
+      warning: vi.fn(),
+      info: vi.fn()
+    };
 
     await TestBed.configureTestingModule({
       imports: [AlertsComponent],
       providers: [
-        { provide: ApiService, useValue: apiService }
+        { provide: ApiService, useValue: apiService },
+        { provide: ToastService, useValue: toastService }
       ]
     }).compileComponents();
 
@@ -54,10 +63,9 @@ describe('AlertsComponent', () => {
     expect(apiService.atenderAlerta).toHaveBeenCalledWith(1);
   });
 
-  it('should alert on atender error', () => {
-    vi.spyOn(window, 'alert').mockImplementation(() => {});
+  it('should toast on atender error', () => {
     apiService.atenderAlerta.mockReturnValue(throwError(() => new Error('fail')));
     component.atender(1);
-    expect(window.alert).toHaveBeenCalledWith('Error al atender la alerta.');
+    expect(toastService.error).toHaveBeenCalledWith('Error al atender la alerta.');
   });
 });

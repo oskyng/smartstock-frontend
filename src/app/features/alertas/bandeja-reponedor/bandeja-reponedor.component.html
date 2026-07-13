@@ -1,0 +1,90 @@
+<div class="space-y-6">
+  <div class="flex justify-between items-center flex-wrap gap-3">
+    <div>
+      <h1 class="text-2xl md:text-3xl font-bold text-gray-900 uppercase">Bandeja de Alertas</h1>
+      <p class="text-gray-500 text-sm mt-1">Reetiquetado y control de precio dinámico por proximidad de vencimiento.</p>
+    </div>
+
+    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider"
+          [ngClass]="{
+            'bg-green-50 text-green-700 border border-green-200': streamEstado === 'connected',
+            'bg-gray-100 text-gray-500 border border-gray-200': streamEstado === 'disconnected',
+            'bg-red-50 text-red-700 border border-red-200': streamEstado === 'error'
+          }"
+          [matTooltip]="streamEstado === 'connected' ? 'Recibiendo alertas escaladas en tiempo real' : 'Sin conexión al canal de auditoría en vivo'">
+      <span class="w-1.5 h-1.5 rounded-full"
+            [ngClass]="{
+              'bg-green-500 animate-pulse': streamEstado === 'connected',
+              'bg-gray-400': streamEstado === 'disconnected',
+              'bg-red-500': streamEstado === 'error'
+            }"></span>
+      {{ streamEstado === 'connected' ? 'En vivo' : (streamEstado === 'error' ? 'Error de conexión' : 'Desconectado') }}
+    </span>
+  </div>
+
+  <div *ngIf="mensajeError" class="p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 font-medium flex items-center gap-2">
+    <mat-icon class="text-red-600">error</mat-icon>
+    {{ mensajeError }}
+  </div>
+
+  <!-- Skeleton loader mientras la petición está en tránsito -->
+  <app-skeleton-cards *ngIf="cargando" [count]="6"></app-skeleton-cards>
+
+  <!-- Empty state -->
+  <div *ngIf="!cargando && alertas.length === 0"
+       class="flex flex-col items-center justify-center text-center py-16 px-6 bg-white border border-dashed border-gray-200 rounded-2xl">
+    <div class="w-16 h-16 rounded-full bg-green-50 flex items-center justify-center mb-4">
+      <mat-icon class="!text-3xl text-green-500">task_alt</mat-icon>
+    </div>
+    <h3 class="text-lg font-bold text-gray-900">¡Todo al día!</h3>
+    <p class="text-sm text-gray-500 mt-1 max-w-sm">{{ mensajeSinAlertas }}</p>
+  </div>
+
+  <div *ngIf="!cargando && alertas.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div *ngFor="let alerta of alertas"
+         class="rounded-2xl border bg-white overflow-hidden flex flex-col"
+         [ngClass]="alerta.estado === 'ESCALADA_AL_GERENTE' ? 'border-red-300 ring-1 ring-red-100' : 'border-gray-100'">
+
+      <div *ngIf="alerta.estado === 'ESCALADA_AL_GERENTE'" class="px-4 py-2 bg-red-600 text-white text-[11px] font-black uppercase tracking-wide flex items-center gap-1.5">
+        <mat-icon class="!text-sm !w-4 !h-4">warning</mat-icon>
+        Escalada — incumplimiento SLA
+      </div>
+
+      <div class="p-5 flex-1 flex flex-col gap-3">
+        <div class="flex items-start justify-between gap-2">
+          <h3 class="font-bold text-gray-900 text-sm">Alerta #{{ alerta.id }}</h3>
+          <span class="shrink-0 px-2 py-0.5 rounded-full text-[9px] font-black uppercase"
+                [ngClass]="{
+                  'bg-yellow-50 text-yellow-700 border border-yellow-200': alerta.estado === 'PENDIENTE',
+                  'bg-red-50 text-red-700 border border-red-200': alerta.estado === 'ESCALADA_AL_GERENTE',
+                  'bg-green-50 text-green-700 border border-green-200': alerta.estado === 'ATENDIDA_A_TIEMPO' || alerta.estado === 'ATENDIDA_CON_RETRASO'
+                }">
+            {{ alerta.estado }}
+          </span>
+        </div>
+
+        <p class="text-sm text-gray-600 text-truncate-tooltip" [matTooltip]="alerta.mensaje" matTooltipPosition="above">
+          {{ alerta.mensaje }}
+        </p>
+
+        <p class="text-[11px] text-gray-400 font-medium mt-auto">
+          <mat-icon class="!text-sm !w-3.5 !h-3.5 align-text-bottom mr-0.5">schedule</mat-icon>
+          Límite SLA: {{ alerta.fechaLimite | date:'dd/MM/yyyy HH:mm' }}
+        </p>
+      </div>
+
+      <div *ngIf="alerta.estado === 'PENDIENTE' || alerta.estado === 'ESCALADA_AL_GERENTE'" class="p-4 pt-0">
+        <button mat-flat-button
+                (click)="marcarAtendida(alerta)"
+                [disabled]="atendiendoId === alerta.id"
+                [class.opacity-50]="atendiendoId === alerta.id"
+                [class.cursor-not-allowed]="atendiendoId === alerta.id"
+                class="!w-full !bg-green-600 !text-white !font-black !text-[10px] !uppercase !tracking-wider !rounded-xl !py-2.5 hover:!bg-green-700 disabled:hover:!bg-green-600">
+          <mat-spinner *ngIf="atendiendoId === alerta.id" diameter="16" class="!inline-block !align-middle mr-2 [&_circle]:!stroke-white"></mat-spinner>
+          <mat-icon *ngIf="atendiendoId !== alerta.id" class="!text-sm mr-1 align-middle">check_circle</mat-icon>
+          {{ atendiendoId === alerta.id ? 'Atendiendo...' : 'Marcar como Atendida' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
