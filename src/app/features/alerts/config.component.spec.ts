@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ConfigComponent } from './config.component';
 import { ApiService } from '../../core/services/api.service';
-import { of, throwError } from 'rxjs';
+import { of, throwError, NEVER } from 'rxjs';
 
 describe('ConfigComponent', () => {
   let component: ConfigComponent;
@@ -16,7 +16,8 @@ describe('ConfigComponent', () => {
     apiService = {
       getReglas: vi.fn().mockReturnValue(of(mockRules)),
       crearRegla: vi.fn().mockReturnValue(of({})),
-      eliminarRegla: vi.fn().mockReturnValue(of(undefined))
+      eliminarRegla: vi.fn().mockReturnValue(of(undefined)),
+      getCategorias: vi.fn().mockReturnValue(of([{ id: 1, nombre: 'Lácteos' }]))
     };
 
     await TestBed.configureTestingModule({
@@ -46,5 +47,21 @@ describe('ConfigComponent', () => {
     component.ngOnInit();
     expect(component.error).toBe('Error al cargar reglas de depreciación.');
     expect(component.loading).toBe(false);
+  });
+
+  it('idCategoria must stay enabled and required while categorias are still loading (regression: disabled controls are silently excluded from FormGroup.value/invalid)', () => {
+    apiService.getCategorias.mockReturnValue(NEVER);
+    component.ngOnInit();
+
+    const idCategoriaControl = component.reglaForm.get('idCategoria');
+    expect(component.cargandoCategorias).toBe(true);
+    expect(idCategoriaControl?.disabled).toBe(false);
+
+    component.reglaForm.patchValue({ diasCriticosMin: 5, porcentajeDescuento: 20 });
+    expect(component.reglaForm.value.idCategoria).toBeNull();
+    expect(component.reglaForm.invalid).toBe(true);
+
+    component.crearRegla();
+    expect(apiService.crearRegla).not.toHaveBeenCalled();
   });
 });

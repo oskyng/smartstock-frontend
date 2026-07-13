@@ -54,22 +54,22 @@
                 <span class="text-truncate-tooltip" [matTooltip]="p.nombre">{{p.nombre}}</span>
               </td>
             </ng-container>
-            <ng-container matColumnDef="sku">
-              <th mat-header-cell *matHeaderCellDef class="!px-6 !py-4 !text-gray-400 !font-bold !text-[11px] !uppercase">SKU</th>
-              <td mat-cell *matCellDef="let p" class="!px-6 !py-4 text-xs text-gray-500">{{p.sku || p.codigoBarra}}</td>
+            <ng-container matColumnDef="codigoBarra">
+              <th mat-header-cell *matHeaderCellDef class="!px-6 !py-4 !text-gray-400 !font-bold !text-[11px] !uppercase">Código de Barra</th>
+              <td mat-cell *matCellDef="let p" class="!px-6 !py-4 text-xs text-gray-500">{{p.codigoBarra}}</td>
             </ng-container>
             <ng-container matColumnDef="categoria">
               <th mat-header-cell *matHeaderCellDef class="!px-6 !py-4 !text-gray-400 !font-bold !text-[11px] !uppercase">Categoría</th>
               <td mat-cell *matCellDef="let p" class="!px-6 !py-4">
-                <mat-chip class="!text-xs !bg-gray-100 !text-gray-600 !border !border-gray-200">{{p.categoria || p.nombreCategoria}}</mat-chip>
+                <mat-chip class="!text-xs !bg-gray-100 !text-gray-600 !border !border-gray-200">{{p.nombreCategoria}}</mat-chip>
               </td>
             </ng-container>
             <ng-container matColumnDef="precioBase">
               <th mat-header-cell *matHeaderCellDef class="!px-6 !py-4 !text-gray-400 !font-bold !text-[11px] !uppercase !text-right">Precio Base</th>
               <td mat-cell *matCellDef="let p" class="!px-6 !py-4 !text-right font-bold text-gray-900">${{p.precioBase}}</td>
             </ng-container>
-            <tr mat-header-row *matHeaderRowDef="['id', 'nombre', 'sku', 'categoria', 'precioBase']"></tr>
-            <tr mat-row *matRowDef="let row; columns: ['id', 'nombre', 'sku', 'categoria', 'precioBase']" class="hover:bg-gray-50 transition-colors"></tr>
+            <tr mat-header-row *matHeaderRowDef="['id', 'nombre', 'codigoBarra', 'categoria', 'precioBase']"></tr>
+            <tr mat-row *matRowDef="let row; columns: ['id', 'nombre', 'codigoBarra', 'categoria', 'precioBase']" class="hover:bg-gray-50 transition-colors"></tr>
           </table>
         </div>
         <div *ngIf="!loading && products.length === 0 && !error" class="flex flex-col items-center py-12 px-6 text-center">
@@ -156,14 +156,9 @@
               <mat-error *ngIf="isInvalid('nombre')">Campo obligatorio</mat-error>
             </mat-form-field>
             <mat-form-field appearance="outline" class="w-full">
-              <mat-label>SKU</mat-label>
-              <input matInput type="text" formControlName="sku" placeholder="Ej: SKU-001" maxlength="50">
-              <mat-error *ngIf="isInvalid('sku')">Campo obligatorio</mat-error>
-            </mat-form-field>
-            <mat-form-field appearance="outline" class="w-full">
-              <mat-label>Descripción</mat-label>
-              <input matInput type="text" formControlName="descripcion" placeholder="Descripción del producto" maxlength="500">
-              <mat-error *ngIf="isInvalid('descripcion')">Campo obligatorio</mat-error>
+              <mat-label>Código de Barra</mat-label>
+              <input matInput type="text" formControlName="codigoBarra" placeholder="Ej: 7801234567890" maxlength="50">
+              <mat-error *ngIf="isInvalid('codigoBarra')">Campo obligatorio</mat-error>
             </mat-form-field>
             <mat-form-field appearance="outline" class="w-full">
               <mat-label>Precio Base</mat-label>
@@ -172,11 +167,40 @@
               <mat-error *ngIf="isInvalid('precioBase') && productoForm.get('precioBase')?.hasError('required')">Campo obligatorio</mat-error>
               <mat-error *ngIf="isInvalid('precioBase') && productoForm.get('precioBase')?.hasError('min')">Debe ser mayor o igual a 0</mat-error>
             </mat-form-field>
-            <mat-form-field appearance="outline" class="w-full">
-              <mat-label>Categoría</mat-label>
-              <input matInput type="text" formControlName="categoria" placeholder="Ej: GENERAL, TECNOLOGIA" maxlength="50">
-              <mat-error *ngIf="isInvalid('categoria')">Campo obligatorio</mat-error>
-            </mat-form-field>
+
+            <div>
+              <div class="flex items-center justify-between mb-1">
+                <span class="text-xs font-bold text-gray-500 uppercase tracking-wide">Categoría</span>
+                <button type="button" (click)="toggleNuevaCategoria()" class="text-[11px] font-bold text-blue-600 hover:underline">
+                  {{ mostrarNuevaCategoria ? 'Cancelar' : '+ Nueva categoría' }}
+                </button>
+              </div>
+
+              <div *ngIf="!mostrarNuevaCategoria">
+                <mat-form-field appearance="outline" class="w-full">
+                  <mat-select formControlName="idCategoria">
+                    <mat-option *ngFor="let c of categorias" [value]="c.id">{{ c.nombre }}</mat-option>
+                  </mat-select>
+                  <mat-error *ngIf="isInvalid('idCategoria')">Debe seleccionar una categoría</mat-error>
+                  <mat-hint *ngIf="cargandoCategorias">Cargando categorías…</mat-hint>
+                  <mat-hint *ngIf="!cargandoCategorias && categorias.length === 0">No hay categorías. Cree una con "+ Nueva categoría".</mat-hint>
+                </mat-form-field>
+              </div>
+
+              <div *ngIf="mostrarNuevaCategoria" [formGroup]="nuevaCategoriaForm" class="flex items-start gap-2">
+                <mat-form-field appearance="outline" class="w-full">
+                  <mat-label>Nombre de la categoría</mat-label>
+                  <input matInput type="text" formControlName="nombre" placeholder="Ej: TECNOLOGIA" maxlength="50">
+                </mat-form-field>
+                <button mat-flat-button type="button" (click)="crearCategoria()"
+                  [disabled]="nuevaCategoriaForm.invalid || guardandoCategoria"
+                  class="!bg-gray-900 !text-white !font-bold !text-[10px] !uppercase !mt-1 !h-14">
+                  <mat-spinner *ngIf="guardandoCategoria" diameter="14" class="!inline-block !align-middle [&_circle]:!stroke-white"></mat-spinner>
+                  <span *ngIf="!guardandoCategoria">Agregar</span>
+                </button>
+              </div>
+            </div>
+
             <button mat-flat-button type="submit"
               [disabled]="productoForm.invalid || guardando"
               [class.opacity-50]="productoForm.invalid || guardando"

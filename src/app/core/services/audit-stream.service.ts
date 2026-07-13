@@ -1,6 +1,9 @@
 import { Injectable, NgZone, OnDestroy, inject } from '@angular/core';
 import { Observable, Subject } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { decodeJwt, getIdComercioFromPayload, getRoleFromPayload } from '../utils/jwt.util';
+
+const ADMIN_ROLE = 'ADMIN_SISTEMA';
 
 export interface AlertaEscaladaEvent {
   alertaId: number;
@@ -47,11 +50,23 @@ export class AuditStreamService implements OnDestroy {
 
     this.abortController = new AbortController();
 
+    const headers: Record<string, string> = {
+      Authorization: `Bearer ${token}`,
+      Accept: 'text/event-stream'
+    };
+
+    // El BFF exige X-Comercio-ID en toda request de un rol no-admin (mismo criterio que auth.interceptor.ts).
+    // Este servicio usa fetch() directo (no HttpClient), así que el interceptor no aplica aquí y hay que
+    // replicar la inyección del header manualmente decodificando el propio JWT.
+    const payload = decodeJwt(token);
+    const rol = getRoleFromPayload(payload);
+    const idComercio = getIdComercioFromPayload(payload);
+    if (rol !== ADMIN_ROLE && idComercio !== null) {
+      headers['X-Comercio-ID'] = idComercio.toString();
+    }
+
     fetch(`${this.API}/audit/stream`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: 'text/event-stream'
-      },
+      headers,
       signal: this.abortController.signal
     })
       .then(response => {

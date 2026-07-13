@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { getRoleLabel } from '../utils/role-label.util';
 
 export interface AuthRequest {
   email: string;
@@ -20,13 +21,6 @@ export interface StoredUser {
   rol: string;
   idComercio: number | null;
 }
-
-const ROLE_LABELS: Record<string, string> = {
-  ADMIN_SISTEMA: 'Administrador del Sistema',
-  GERENTE_TIENDA: 'Gerente de Tienda',
-  OPERADOR_INVENTARIO: 'Operador de Inventario',
-  REPONEDOR_SALA: 'Reponedor de Sala'
-};
 
 @Injectable({
   providedIn: 'root'
@@ -87,8 +81,7 @@ export class AuthService {
 
   /** Nombre legible del rol para mostrar en la UI (ej. "Gerente de Tienda"). */
   getRoleLabel(): string {
-    const rol = this.getUser()?.rol;
-    return rol ? (ROLE_LABELS[rol] ?? rol) : '';
+    return getRoleLabel(this.getUser()?.rol);
   }
 
   /** Etiqueta del comercio activo: ID del comercio, o alcance global para ADMIN_SISTEMA. */

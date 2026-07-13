@@ -42,10 +42,10 @@
               <th mat-header-cell *matHeaderCellDef class="!px-6 !py-4 !text-gray-400 !font-bold !text-[10px] !uppercase !bg-gray-50/50">ID</th>
               <td mat-cell *matCellDef="let rule" class="!px-6 !py-4 text-gray-400 font-bold text-xs">#{{rule.id}}</td>
             </ng-container>
-            <ng-container matColumnDef="nombre">
-              <th mat-header-cell *matHeaderCellDef class="!px-6 !py-4 !text-gray-400 !font-bold !text-[10px] !uppercase !bg-gray-50/50">Nombre</th>
+            <ng-container matColumnDef="nombreCategoria">
+              <th mat-header-cell *matHeaderCellDef class="!px-6 !py-4 !text-gray-400 !font-bold !text-[10px] !uppercase !bg-gray-50/50">Categoría</th>
               <td mat-cell *matCellDef="let rule" class="!px-6 !py-4 font-bold text-gray-700 text-xs max-w-[180px]">
-                <span class="text-truncate-tooltip" [matTooltip]="rule.nombre">{{rule.nombre}}</span>
+                <span class="text-truncate-tooltip" [matTooltip]="rule.nombreCategoria">{{rule.nombreCategoria}}</span>
               </td>
             </ng-container>
             <ng-container matColumnDef="diasCriticosMin">
@@ -58,14 +58,6 @@
               <th mat-header-cell *matHeaderCellDef class="!px-6 !py-4 !text-gray-400 !font-bold !text-[10px] !uppercase !bg-gray-50/50">Descuento</th>
               <td mat-cell *matCellDef="let rule" class="!px-6 !py-4 font-black text-gray-900 text-base">{{rule.porcentajeDescuento}}%</td>
             </ng-container>
-            <ng-container matColumnDef="activa">
-              <th mat-header-cell *matHeaderCellDef class="!px-6 !py-4 !text-gray-400 !font-bold !text-[10px] !uppercase !bg-gray-50/50">Estado</th>
-              <td mat-cell *matCellDef="let rule" class="!px-6 !py-4">
-                <mat-chip [ngClass]="rule.activa ? '!bg-green-500 !text-white' : '!bg-gray-300 !text-white'" class="!text-[9px] !font-black !uppercase !min-h-5">
-                  {{ rule.activa ? 'ACTIVO' : 'INACTIVO' }}
-                </mat-chip>
-              </td>
-            </ng-container>
             <ng-container matColumnDef="acciones">
               <th mat-header-cell *matHeaderCellDef class="!px-6 !py-4 !text-gray-400 !font-bold !text-[10px] !uppercase !bg-gray-50/50 !text-right">Acciones</th>
               <td mat-cell *matCellDef="let rule" class="!px-6 !py-4 !text-right">
@@ -74,8 +66,8 @@
                 </button>
               </td>
             </ng-container>
-            <tr mat-header-row *matHeaderRowDef="['id', 'nombre', 'diasCriticosMin', 'porcentajeDescuento', 'activa', 'acciones']"></tr>
-            <tr mat-row *matRowDef="let row; columns: ['id', 'nombre', 'diasCriticosMin', 'porcentajeDescuento', 'activa', 'acciones']" class="hover:bg-gray-50/50 transition-colors"></tr>
+            <tr mat-header-row *matHeaderRowDef="['id', 'nombreCategoria', 'diasCriticosMin', 'porcentajeDescuento', 'acciones']"></tr>
+            <tr mat-row *matRowDef="let row; columns: ['id', 'nombreCategoria', 'diasCriticosMin', 'porcentajeDescuento', 'acciones']" class="hover:bg-gray-50/50 transition-colors"></tr>
           </table>
         </div>
         <div *ngIf="!loading && rules.length === 0" class="flex flex-col items-center py-12 px-6 text-center">
@@ -97,9 +89,13 @@
 
           <form [formGroup]="reglaForm" (ngSubmit)="crearRegla()" class="space-y-4">
             <mat-form-field appearance="outline" class="w-full">
-              <mat-label>Nombre de la Regla</mat-label>
-              <input matInput type="text" formControlName="nombre" placeholder="Ej: Regla Lácteos" maxlength="100">
-              <mat-error *ngIf="isInvalid('nombre')">Campo obligatorio</mat-error>
+              <mat-label>Categoría</mat-label>
+              <mat-select formControlName="idCategoria">
+                <mat-option *ngFor="let cat of categorias" [value]="cat.id">{{ cat.nombre }}</mat-option>
+              </mat-select>
+              <mat-error *ngIf="isInvalid('idCategoria')">Debe seleccionar una categoría</mat-error>
+              <mat-hint *ngIf="cargandoCategorias">Cargando categorías…</mat-hint>
+              <mat-hint *ngIf="!cargandoCategorias && categorias.length === 0">No hay categorías disponibles.</mat-hint>
             </mat-form-field>
 
             <mat-form-field appearance="outline" class="w-full">
@@ -118,11 +114,6 @@
               <mat-error *ngIf="isInvalid('porcentajeDescuento') && reglaForm.get('porcentajeDescuento')?.hasError('required')">Campo obligatorio</mat-error>
               <mat-error *ngIf="isInvalid('porcentajeDescuento') && (reglaForm.get('porcentajeDescuento')?.hasError('min') || reglaForm.get('porcentajeDescuento')?.hasError('max'))">Entre 0 y 100</mat-error>
             </mat-form-field>
-
-            <div class="flex items-center gap-2">
-              <input type="checkbox" formControlName="activa" id="activaCheck" class="w-4 h-4">
-              <label for="activaCheck" class="text-xs font-bold text-gray-700">Regla Activa</label>
-            </div>
 
             <button mat-flat-button type="submit" [disabled]="reglaForm.invalid || guardando"
               [class.opacity-50]="reglaForm.invalid || guardando"

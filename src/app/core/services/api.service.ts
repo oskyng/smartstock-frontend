@@ -9,9 +9,35 @@ export interface ProductoResponse {
   nombre: string;
   nombreCategoria: string;
   precioBase: number;
-  sku?: string;
-  descripcion?: string;
-  categoria?: string;
+}
+
+export interface ProductoRequest {
+  codigoBarra: string;
+  nombre: string;
+  idCategoria: number;
+  precioBase: number;
+}
+
+export interface CategoriaResponse {
+  id: number;
+  nombre: string;
+}
+
+export interface CategoriaRequest {
+  nombre: string;
+}
+
+export interface ProveedorResponse {
+  id: number;
+  rutEmpresa: string;
+  razonSocial: string;
+  contactoEmail: string;
+}
+
+export interface ProveedorRequest {
+  rutEmpresa: string;
+  razonSocial: string;
+  contactoEmail: string;
 }
 
 export interface LoteResponse {
@@ -83,8 +109,26 @@ export class ApiService {
     return this.http.get<ProductoResponse>(`${this.API}/productos/${id}`);
   }
 
-  crearProducto(producto: any): Observable<ProductoResponse> {
+  crearProducto(producto: ProductoRequest): Observable<ProductoResponse> {
     return this.http.post<ProductoResponse>(`${this.API}/productos`, producto);
+  }
+
+  // Categorías
+  getCategorias(): Observable<CategoriaResponse[]> {
+    return this.http.get<CategoriaResponse[]>(`${this.API}/categorias`);
+  }
+
+  crearCategoria(categoria: CategoriaRequest): Observable<CategoriaResponse> {
+    return this.http.post<CategoriaResponse>(`${this.API}/categorias`, categoria);
+  }
+
+  // Proveedores
+  getProveedores(): Observable<ProveedorResponse[]> {
+    return this.http.get<ProveedorResponse[]>(`${this.API}/proveedores`);
+  }
+
+  crearProveedor(proveedor: ProveedorRequest): Observable<ProveedorResponse> {
+    return this.http.post<ProveedorResponse>(`${this.API}/proveedores`, proveedor);
   }
 
   // Lotes (Inventario)

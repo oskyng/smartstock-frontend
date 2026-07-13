@@ -42,12 +42,12 @@
 
     <mat-card *ngFor="let alert of alerts" class="!shadow-sm !rounded-xl !border-l-4 overflow-hidden" [ngClass]="{
       '!border-red-500': alert.estado === 'PENDIENTE',
-      '!border-green-400': alert.estado === 'ATENDIDA',
-      '!border-orange-400': alert.estado !== 'PENDIENTE' && alert.estado !== 'ATENDIDA'
+      '!border-green-400': alert.estado === 'ATENDIDA_A_TIEMPO' || alert.estado === 'ATENDIDA_CON_RETRASO',
+      '!border-orange-400': alert.estado !== 'PENDIENTE' && alert.estado !== 'ATENDIDA_A_TIEMPO' && alert.estado !== 'ATENDIDA_CON_RETRASO'
     }">
       <mat-card-content class="p-4" [ngClass]="{
         'bg-red-50/30': alert.estado === 'PENDIENTE',
-        'bg-green-50/30': alert.estado === 'ATENDIDA'
+        'bg-green-50/30': alert.estado === 'ATENDIDA_A_TIEMPO' || alert.estado === 'ATENDIDA_CON_RETRASO'
       }">
         <div class="flex items-center gap-2 mb-4">
           <mat-icon [ngClass]="alert.estado === 'PENDIENTE' ? 'text-red-600' : 'text-green-600'">notifications_active</mat-icon>

@@ -2,6 +2,7 @@ import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { GerenciaService } from '../services/gerencia.service';
+import { ApiService, CategoriaResponse } from '../../../core/services/api.service';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -13,6 +14,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatSelectModule } from '@angular/material/select';
 import { ToastService } from '../../../core/services/toast.service';
 import { SkeletonRowsComponent } from '../../../shared/components/skeleton-rows/skeleton-rows.component';
 
@@ -39,7 +41,7 @@ interface Alerta {
   imports: [
     CommonModule, ReactiveFormsModule, MatCardModule, MatFormFieldModule, MatInputModule,
     MatButtonModule, MatIconModule, MatCheckboxModule, MatProgressSpinnerModule, MatTableModule,
-    MatChipsModule, MatDividerModule, MatTooltipModule, SkeletonRowsComponent
+    MatChipsModule, MatDividerModule, MatTooltipModule, MatSelectModule, SkeletonRowsComponent
   ],
   templateUrl: './dashboard-control.component.html'
 })
@@ -53,6 +55,9 @@ export class DashboardControlComponent implements OnInit {
   cargandoReglas = false;
   errorReglas: string | null = null;
 
+  categorias: CategoriaResponse[] = [];
+  cargandoCategorias = false;
+
   alertas: Alerta[] = [];
   cargandoAlertas = false;
   mensajeErrorAlertas: string | null = null;
@@ -62,19 +67,20 @@ export class DashboardControlComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private gerenciaService: GerenciaService,
+    private apiService: ApiService,
     private toast: ToastService,
     private cdr: ChangeDetectorRef
   ) {
     this.reglasForm = this.fb.group({
-      nombre: ['', [Validators.required, Validators.maxLength(100)]],
+      idCategoria: [null, [Validators.required]],
       diasCriticosMin: [null, [Validators.required, Validators.min(1), Validators.max(365)]],
-      porcentajeDescuento: [null, [Validators.required, Validators.min(0), Validators.max(100)]],
-      activa: [true]
+      porcentajeDescuento: [null, [Validators.required, Validators.min(0), Validators.max(100)]]
     });
   }
 
   ngOnInit(): void {
     this.cargarReglas();
+    this.cargarCategorias();
     // GET /api/v1/bff/alertas es exclusivo del rol REPONEDOR_SALA en el BFF (por diseño);
     // para GERENTE_TIENDA siempre resulta en 403, así que no se solicita.
     this.alertasNoDisponibles = true;
@@ -83,6 +89,21 @@ export class DashboardControlComponent implements OnInit {
   isInvalid(controlName: string): boolean {
     const control = this.reglasForm.get(controlName);
     return !!control && control.invalid && (control.touched || control.dirty);
+  }
+
+  cargarCategorias(): void {
+    this.cargandoCategorias = true;
+    this.apiService.getCategorias().subscribe({
+      next: (data) => {
+        this.categorias = data;
+        this.cargandoCategorias = false;
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.cargandoCategorias = false;
+        this.cdr.markForCheck();
+      }
+    });
   }
 
   cargarReglas(): void {
@@ -117,7 +138,7 @@ export class DashboardControlComponent implements OnInit {
       next: () => {
         this.mensajeExitoReglas = 'Regla de depreciación creada correctamente.';
         this.toast.success(this.mensajeExitoReglas);
-        this.reglasForm.reset({ activa: true });
+        this.reglasForm.reset();
         this.guardandoReglas = false;
         this.cargarReglas();
         this.cdr.markForCheck();

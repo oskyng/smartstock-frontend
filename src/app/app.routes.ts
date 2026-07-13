@@ -49,6 +49,24 @@ export const routes: Routes = [
         data: { roles: ['ADMIN_SISTEMA'] }
       },
       {
+        path: 'admin/usuarios',
+        loadComponent: () => import('./features/usuarios/crear-usuario.component').then(m => m.CrearUsuarioComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['ADMIN_SISTEMA'] }
+      },
+      {
+        path: 'gerencia/usuarios',
+        loadComponent: () => import('./features/usuarios/crear-usuario.component').then(m => m.CrearUsuarioComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['GERENTE_TIENDA'] }
+      },
+      {
+        path: 'gerencia/catalogo',
+        loadComponent: () => import('./features/gerencia/catalogo/catalogo.component').then(m => m.CatalogoComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['GERENTE_TIENDA'] }
+      },
+      {
         path: 'infra',
         loadComponent: () => import('./features/infra/infra-diag.component').then(m => m.InfraDiagComponent),
         canActivate: [roleGuard],
@@ -87,6 +105,12 @@ export const routes: Routes = [
       {
         path: 'gerencia/dashboard',
         loadComponent: () => import('./features/gerencia/dashboard-control/dashboard-control.component').then(m => m.DashboardControlComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['GERENTE_TIENDA'] }
+      },
+      {
+        path: 'gerencia/control-auditoria',
+        loadComponent: () => import('./features/gerencia/control-auditoria/control-auditoria.component').then(m => m.ControlAuditoriaComponent),
         canActivate: [roleGuard],
         data: { roles: ['GERENTE_TIENDA'] }
       }

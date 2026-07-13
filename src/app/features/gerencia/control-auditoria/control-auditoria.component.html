@@ -1,0 +1,212 @@
+<div class="space-y-6">
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+    <div>
+      <h1 class="text-2xl md:text-3xl font-bold text-gray-900 uppercase">Control y Auditoría de Alertas</h1>
+      <p class="text-gray-500 text-sm mt-1">Monitoree en tiempo real el cumplimiento de SLA de sus reponedores.</p>
+    </div>
+
+    <!-- Indicador de conexión en vivo (SSE) -->
+    <div class="flex items-center gap-2 px-3 py-1.5 rounded-full border text-[11px] font-bold uppercase tracking-wide"
+         [ngClass]="{
+           'bg-green-50 border-green-200 text-green-700': streamEstado === 'connected',
+           'bg-gray-50 border-gray-200 text-gray-500': streamEstado === 'disconnected',
+           'bg-red-50 border-red-200 text-red-700': streamEstado === 'error'
+         }">
+      <span class="w-2 h-2 rounded-full" [class.live-dot]="streamEstado === 'connected'"
+            [ngClass]="{
+              'bg-green-500': streamEstado === 'connected',
+              'bg-gray-400': streamEstado === 'disconnected',
+              'bg-red-500': streamEstado === 'error'
+            }"></span>
+      {{ streamEstado === 'connected' ? 'En vivo' : streamEstado === 'error' ? 'Sin conexión' : 'Conectando…' }}
+    </div>
+  </div>
+
+  <div *ngIf="error && !cargando" class="p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 font-medium flex items-center gap-2">
+    <mat-icon class="text-red-600">error</mat-icon>
+    {{ error }}
+  </div>
+
+  <!-- KPI Cards -->
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="bg-white rounded-2xl border-l-4 border-yellow-400 shadow-sm p-5 flex items-center gap-4">
+      <div class="w-11 h-11 rounded-xl bg-yellow-50 flex items-center justify-center shrink-0">
+        <mat-icon class="!text-yellow-600">hourglass_empty</mat-icon>
+      </div>
+      <div>
+        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Pendientes</p>
+        <p class="text-2xl font-black text-gray-900">{{ kpiPendientes }}</p>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-2xl border-l-4 border-green-500 shadow-sm p-5 flex items-center gap-4">
+      <div class="w-11 h-11 rounded-xl bg-green-50 flex items-center justify-center shrink-0">
+        <mat-icon class="!text-green-600">check_circle</mat-icon>
+      </div>
+      <div>
+        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Atendidas a Tiempo</p>
+        <p class="text-2xl font-black text-gray-900">{{ kpiATiempo }}</p>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-2xl border-l-4 border-orange-500 shadow-sm p-5 flex items-center gap-4">
+      <div class="w-11 h-11 rounded-xl bg-orange-50 flex items-center justify-center shrink-0">
+        <mat-icon class="!text-orange-600">schedule</mat-icon>
+      </div>
+      <div>
+        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Fuera de Plazo</p>
+        <p class="text-2xl font-black text-gray-900">{{ kpiConRetraso }}</p>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-2xl border-l-4 border-red-600 shadow-sm p-5 flex items-center gap-4">
+      <div class="w-11 h-11 rounded-xl bg-red-50 flex items-center justify-center shrink-0">
+        <mat-icon class="!text-red-600">warning</mat-icon>
+      </div>
+      <div>
+        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Escaladas</p>
+        <p class="text-2xl font-black text-gray-900">{{ kpiEscaladas }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtros en caliente -->
+  <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex flex-wrap items-end gap-4">
+    <div class="flex flex-col gap-1">
+      <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Responsable</label>
+      <select [(ngModel)]="filtroResponsableId" (ngModelChange)="onFiltroChange()"
+              class="min-w-[200px] px-3 py-2 rounded-lg border border-gray-200 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-200">
+        <option [ngValue]="null">Todos los responsables</option>
+        <option *ngFor="let r of responsables" [ngValue]="r.id">{{ r.nombre }}</option>
+      </select>
+    </div>
+
+    <div class="flex flex-col gap-1">
+      <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Estado</label>
+      <select [(ngModel)]="filtroEstado" (ngModelChange)="onFiltroChange()"
+              class="min-w-[200px] px-3 py-2 rounded-lg border border-gray-200 text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-200">
+        <option [ngValue]="null">Todos los estados</option>
+        <option *ngFor="let e of estados" [ngValue]="e.valor">{{ e.etiqueta }}</option>
+      </select>
+    </div>
+
+    <button mat-flat-button (click)="limpiarFiltros()" class="!bg-gray-100 !text-gray-700 !font-bold !text-xs">
+      <mat-icon class="!text-lg mr-1">filter_alt_off</mat-icon> Limpiar filtros
+    </button>
+
+    <button mat-flat-button (click)="cargarAuditoria()" class="!bg-gray-100 !text-gray-700 !font-bold !text-xs ml-auto">
+      <mat-icon class="!text-lg mr-1">refresh</mat-icon> Actualizar
+    </button>
+  </div>
+
+  <!-- Tabla de trazabilidad y desempeño -->
+  <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+    <div class="p-4 border-b bg-gray-50/50">
+      <h3 class="font-black text-gray-900 text-sm uppercase">Trazabilidad de Alertas ({{ alertasFiltradas.length }})</h3>
+    </div>
+
+    <app-skeleton-rows *ngIf="cargando" [rows]="6" [columns]="6"></app-skeleton-rows>
+
+    <div class="overflow-x-auto" *ngIf="!cargando && !error">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b bg-gray-50/50">
+            <th class="!px-6 !py-4 !text-gray-400 !font-bold !text-[11px] !uppercase text-left">Producto / Lote</th>
+            <th class="!px-6 !py-4 !text-gray-400 !font-bold !text-[11px] !uppercase text-left">Responsable</th>
+            <th class="!px-6 !py-4 !text-gray-400 !font-bold !text-[11px] !uppercase text-left">Fecha Límite / Atención</th>
+            <th class="!px-6 !py-4 !text-gray-400 !font-bold !text-[11px] !uppercase text-center">Estado</th>
+            <th class="!px-6 !py-4 !text-gray-400 !font-bold !text-[11px] !uppercase text-center">SLA</th>
+            <th class="!px-6 !py-4 !text-gray-400 !font-bold !text-[11px] !uppercase text-right">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let a of alertasFiltradas"
+              class="border-b hover:bg-gray-50 transition-colors"
+              [class.fila-flash]="alertasParpadeando.has(a.id)">
+            <td class="!px-6 !py-4">
+              <p class="font-bold text-gray-900">{{ a.productoNombre }}</p>
+              <p class="text-[11px] text-gray-400">SKU / Cód. Barra: {{ a.codigoBarra }} · Lote #{{ a.loteId }}</p>
+            </td>
+            <td class="!px-6 !py-4 text-gray-700">{{ a.usuarioAsignadoNombre }}</td>
+            <td class="!px-6 !py-4 text-xs text-gray-500">
+              <p><mat-icon class="!text-sm !w-3.5 !h-3.5 align-text-bottom mr-0.5">event</mat-icon> Límite: {{ a.fechaLimiteAtencion | date:'dd/MM/yyyy HH:mm' }}</p>
+              <p *ngIf="a.fechaAtencion"><mat-icon class="!text-sm !w-3.5 !h-3.5 align-text-bottom mr-0.5">task_alt</mat-icon> Atendida: {{ a.fechaAtencion | date:'dd/MM/yyyy HH:mm' }}</p>
+              <p *ngIf="!a.fechaAtencion" class="italic text-gray-400">Aún sin atender</p>
+            </td>
+            <td class="!px-6 !py-4 text-center">
+              <span class="inline-block px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wide"
+                    [ngClass]="{
+                      'bg-yellow-50 text-yellow-700 border border-yellow-200': a.estadoAlerta === 'PENDIENTE',
+                      'bg-green-50 text-green-700 border border-green-200': a.estadoAlerta === 'ATENDIDA_A_TIEMPO',
+                      'bg-orange-50 text-orange-700 border border-orange-200': a.estadoAlerta === 'ATENDIDA_CON_RETRASO',
+                      'bg-red-50 text-red-700 border border-red-200': a.estadoAlerta === 'ESCALADA_AL_GERENTE'
+                    }">
+                {{ etiquetaEstado(a.estadoAlerta) }}
+              </span>
+            </td>
+            <td class="!px-6 !py-4 text-center">
+              <span *ngIf="calcularRetraso(a) as retraso" class="text-[11px] font-black text-red-600">{{ retraso }}</span>
+              <span *ngIf="!calcularRetraso(a)" class="text-[11px] text-gray-300">—</span>
+            </td>
+            <td class="!px-6 !py-4 !text-right">
+              <button *ngIf="a.estadoAlerta === 'ESCALADA_AL_GERENTE'" mat-flat-button
+                      (click)="abrirIntervencion(a)"
+                      matTooltip="Aplicar un ajuste manual o resolver el lote directamente"
+                      class="!bg-red-600 !text-white !font-bold !text-[10px] !uppercase !tracking-wide">
+                <mat-icon class="!text-sm mr-1 align-middle">bolt</mat-icon> Intervenir Lote
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div *ngIf="!cargando && !error && alertasFiltradas.length === 0" class="flex flex-col items-center py-12 px-6 text-center">
+      <mat-icon class="!text-4xl text-gray-300 mb-2">fact_check</mat-icon>
+      <p class="text-gray-400 text-sm">No hay alertas que coincidan con los filtros seleccionados.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Intervenir Lote (acción de emergencia para alertas ESCALADA_AL_GERENTE) -->
+<div *ngIf="mostrarModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-overlay">
+  <div class="absolute inset-0 bg-black/50" (click)="cerrarModal()"></div>
+
+  <div class="relative bg-white rounded-2xl shadow-xl w-full max-w-md p-6 modal-panel" *ngIf="alertaSeleccionada as a">
+    <div class="flex items-center gap-2 mb-4">
+      <div class="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center">
+        <mat-icon class="!text-red-600">bolt</mat-icon>
+      </div>
+      <div>
+        <h3 class="font-black text-gray-900 uppercase text-sm">Intervenir Lote</h3>
+        <p class="text-[11px] text-gray-400">Ajuste manual sobre una alerta escalada</p>
+      </div>
+    </div>
+
+    <div class="bg-gray-50 rounded-xl p-4 mb-4 space-y-1">
+      <p class="font-bold text-gray-900 text-sm">{{ a.productoNombre }}</p>
+      <p class="text-[11px] text-gray-500">SKU / Cód. Barra: {{ a.codigoBarra }} · Lote #{{ a.loteId }}</p>
+      <p class="text-[11px] text-gray-500">Responsable asignado: {{ a.usuarioAsignadoNombre }}</p>
+      <p class="text-[11px] text-red-600 font-bold" *ngIf="calcularRetraso(a) as retraso">Retraso actual: {{ retraso }}</p>
+    </div>
+
+    <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Justificación / Nota de intervención</label>
+    <textarea [(ngModel)]="notaIntervencion" rows="3" placeholder="Ej: Se aplicó descuento manual y se retiró el lote de góndola."
+              class="w-full mt-1 px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-red-200"></textarea>
+    <p class="text-[10px] text-gray-400 mt-1">
+      Esta acción marca la alerta como resuelta por el gerente. La nota queda solo en el registro de auditoría de esta sesión.
+    </p>
+
+    <div class="flex gap-3 mt-5">
+      <button mat-flat-button (click)="cerrarModal()" [disabled]="guardandoIntervencion"
+              class="!flex-1 !bg-gray-100 !text-gray-700 !font-bold !text-xs !uppercase">
+        Cancelar
+      </button>
+      <button mat-flat-button (click)="confirmarIntervencion()" [disabled]="guardandoIntervencion"
+              class="!flex-1 !bg-red-600 !text-white !font-bold !text-xs !uppercase">
+        <mat-spinner *ngIf="guardandoIntervencion" diameter="16" class="!inline-block !align-middle mr-2 [&_circle]:!stroke-white"></mat-spinner>
+        {{ guardandoIntervencion ? 'Aplicando...' : 'Confirmar Intervención' }}
+      </button>
+    </div>
+  </div>
+</div>

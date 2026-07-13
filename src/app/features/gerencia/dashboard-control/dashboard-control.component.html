@@ -19,9 +19,13 @@
 
         <form [formGroup]="reglasForm" (ngSubmit)="crearRegla()" class="space-y-4">
           <mat-form-field appearance="outline" class="w-full">
-            <mat-label>Nombre de la Regla</mat-label>
-            <input matInput formControlName="nombre" placeholder="Ej: Regla Lácteos" maxlength="100">
-            <mat-error *ngIf="isInvalid('nombre')">Este campo es obligatorio.</mat-error>
+            <mat-label>Categoría</mat-label>
+            <mat-select formControlName="idCategoria">
+              <mat-option *ngFor="let cat of categorias" [value]="cat.id">{{ cat.nombre }}</mat-option>
+            </mat-select>
+            <mat-error *ngIf="isInvalid('idCategoria')">Debe seleccionar una categoría.</mat-error>
+            <mat-hint *ngIf="cargandoCategorias">Cargando categorías…</mat-hint>
+            <mat-hint *ngIf="!cargandoCategorias && categorias.length === 0">No hay categorías disponibles.</mat-hint>
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="w-full">
@@ -38,8 +42,6 @@
             <mat-error *ngIf="isInvalid('porcentajeDescuento') && reglasForm.get('porcentajeDescuento')?.hasError('required')">Este campo es obligatorio.</mat-error>
             <mat-error *ngIf="isInvalid('porcentajeDescuento') && (reglasForm.get('porcentajeDescuento')?.hasError('min') || reglasForm.get('porcentajeDescuento')?.hasError('max'))">Debe estar entre 0 y 100.</mat-error>
           </mat-form-field>
-
-          <mat-checkbox formControlName="activa" color="primary">Regla Activa</mat-checkbox>
 
           <button mat-flat-button color="primary" type="submit" class="w-full"
             [disabled]="reglasForm.invalid || guardandoReglas"
@@ -68,10 +70,10 @@
               <th mat-header-cell *matHeaderCellDef class="!px-4 !py-3 !text-gray-400 !font-bold !text-[10px] !uppercase !bg-gray-50">ID</th>
               <td mat-cell *matCellDef="let r" class="!px-4 !py-3 text-sm">{{ r.id }}</td>
             </ng-container>
-            <ng-container matColumnDef="nombre">
-              <th mat-header-cell *matHeaderCellDef class="!px-4 !py-3 !text-gray-400 !font-bold !text-[10px] !uppercase !bg-gray-50">Nombre</th>
+            <ng-container matColumnDef="nombreCategoria">
+              <th mat-header-cell *matHeaderCellDef class="!px-4 !py-3 !text-gray-400 !font-bold !text-[10px] !uppercase !bg-gray-50">Categoría</th>
               <td mat-cell *matCellDef="let r" class="!px-4 !py-3 text-sm font-bold text-gray-900 max-w-[140px]">
-                <span class="text-truncate-tooltip" [matTooltip]="r.nombre">{{ r.nombre }}</span>
+                <span class="text-truncate-tooltip" [matTooltip]="r.nombreCategoria">{{ r.nombreCategoria }}</span>
               </td>
             </ng-container>
             <ng-container matColumnDef="diasCriticosMin">
@@ -82,14 +84,6 @@
               <th mat-header-cell *matHeaderCellDef class="!px-4 !py-3 !text-gray-400 !font-bold !text-[10px] !uppercase !bg-gray-50">Descuento %</th>
               <td mat-cell *matCellDef="let r" class="!px-4 !py-3 text-sm">{{ r.porcentajeDescuento }}%</td>
             </ng-container>
-            <ng-container matColumnDef="activa">
-              <th mat-header-cell *matHeaderCellDef class="!px-4 !py-3 !text-gray-400 !font-bold !text-[10px] !uppercase !bg-gray-50">Activa</th>
-              <td mat-cell *matCellDef="let r" class="!px-4 !py-3">
-                <mat-chip [ngClass]="r.activa ? '!bg-green-100 !text-green-700' : '!bg-gray-100 !text-gray-700'" class="!text-[10px] !font-bold !px-2 !min-h-6">
-                  {{ r.activa ? 'Sí' : 'No' }}
-                </mat-chip>
-              </td>
-            </ng-container>
             <ng-container matColumnDef="acciones">
               <th mat-header-cell *matHeaderCellDef class="!px-4 !py-3 !text-gray-400 !font-bold !text-[10px] !uppercase !bg-gray-50">Acciones</th>
               <td mat-cell *matCellDef="let r" class="!px-4 !py-3">
@@ -98,8 +92,8 @@
                 </button>
               </td>
             </ng-container>
-            <tr mat-header-row *matHeaderRowDef="['id', 'nombre', 'diasCriticosMin', 'porcentajeDescuento', 'activa', 'acciones']"></tr>
-            <tr mat-row *matRowDef="let row; columns: ['id', 'nombre', 'diasCriticosMin', 'porcentajeDescuento', 'activa', 'acciones']" class="hover:bg-gray-50 transition-colors"></tr>
+            <tr mat-header-row *matHeaderRowDef="['id', 'nombreCategoria', 'diasCriticosMin', 'porcentajeDescuento', 'acciones']"></tr>
+            <tr mat-row *matRowDef="let row; columns: ['id', 'nombreCategoria', 'diasCriticosMin', 'porcentajeDescuento', 'acciones']" class="hover:bg-gray-50 transition-colors"></tr>
           </table>
         </div>
       </mat-card-content>
@@ -150,9 +144,9 @@
               <th mat-header-cell *matHeaderCellDef class="!px-4 !py-3 !text-gray-400 !font-bold !text-[10px] !uppercase !bg-gray-50">Estado</th>
               <td mat-cell *matCellDef="let alerta" class="!px-4 !py-3">
                 <mat-chip [ngClass]="{
-                  '!bg-red-100 !text-red-700': alerta.estado === 'ESCALADA',
+                  '!bg-red-100 !text-red-700': alerta.estado === 'ESCALADA_AL_GERENTE',
                   '!bg-amber-100 !text-amber-700': alerta.estado === 'PENDIENTE',
-                  '!bg-green-100 !text-green-700': alerta.estado === 'ATENDIDA'
+                  '!bg-green-100 !text-green-700': alerta.estado === 'ATENDIDA_A_TIEMPO' || alerta.estado === 'ATENDIDA_CON_RETRASO'
                 }" class="!text-[10px] !font-bold !px-2 !min-h-6">
                   {{ alerta.estado }}
                 </mat-chip>

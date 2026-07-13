@@ -12,7 +12,9 @@ describe('InventoryComponent', () => {
     apiService = {
       getProductos: vi.fn().mockReturnValue(of([])),
       getLotes: vi.fn().mockReturnValue(of([])),
-      crearProducto: vi.fn().mockReturnValue(of({}))
+      getCategorias: vi.fn().mockReturnValue(of([])),
+      crearProducto: vi.fn().mockReturnValue(of({})),
+      crearCategoria: vi.fn().mockReturnValue(of({}))
     };
 
     await TestBed.configureTestingModule({
@@ -64,5 +66,37 @@ describe('InventoryComponent', () => {
     component.ngOnInit();
     expect(component.errorLotes).toBe('Error al cargar lotes.');
     expect(component.loadingLotes).toBe(false);
+  });
+
+  it('should load categorias on init', () => {
+    const mockCategorias = [{ id: 1, nombre: 'GENERAL' }];
+    apiService.getCategorias.mockReturnValue(of(mockCategorias));
+
+    component.ngOnInit();
+
+    expect(component.categorias).toEqual(mockCategorias);
+    expect(component.cargandoCategorias).toBe(false);
+  });
+
+  it('crearProducto should send codigoBarra/idCategoria matching the backend DTO', () => {
+    component.productoForm.setValue({
+      codigoBarra: '7801234567890', nombre: 'Leche', precioBase: 1000, idCategoria: 1
+    });
+    component.crearProducto();
+    expect(apiService.crearProducto).toHaveBeenCalledWith({
+      codigoBarra: '7801234567890', nombre: 'Leche', precioBase: 1000, idCategoria: 1
+    });
+  });
+
+  it('crearCategoria should add the new category and select it in the producto form', () => {
+    const nuevaCategoria = { id: 5, nombre: 'TECNOLOGIA' };
+    apiService.crearCategoria.mockReturnValue(of(nuevaCategoria));
+    component.nuevaCategoriaForm.setValue({ nombre: 'TECNOLOGIA' });
+
+    component.crearCategoria();
+
+    expect(component.categorias).toContainEqual(nuevaCategoria);
+    expect(component.productoForm.get('idCategoria')?.value).toBe(5);
+    expect(component.mostrarNuevaCategoria).toBe(false);
   });
 });
