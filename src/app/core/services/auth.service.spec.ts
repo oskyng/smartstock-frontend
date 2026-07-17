@@ -27,31 +27,48 @@ describe('AuthService', () => {
     expect(service).toBeTruthy();
   });
 
-  it('login should POST and store token/user', () => {
-    const mockRes = { token: 'abc123', email: 'test@test.com', rol: 'ADMIN' };
+  it('login should POST with credentials and store only non-sensitive user metadata (never the token)', () => {
+    // El backend ya no devuelve el JWT en el body (viaja en una cookie httpOnly, ver
+    // BffController.login): el body de éxito solo trae email/rol/idComercio.
+    const mockRes = { email: 'test@test.com', rol: 'ADMIN', idComercio: null };
     service.login({ email: 'test@test.com', password: '123' }).subscribe(res => {
       expect(res).toEqual(mockRes);
     });
     const req = httpMock.expectOne(`${API}/auth/login`);
     expect(req.request.method).toBe('POST');
+    expect(req.request.withCredentials).toBe(true);
     req.flush(mockRes);
 
-    expect(localStorage.getItem('ss_token')).toBe('abc123');
+    expect(localStorage.getItem('ss_token')).toBeNull();
     expect(JSON.parse(localStorage.getItem('ss_user')!)).toEqual({ email: 'test@test.com', rol: 'ADMIN', idComercio: null });
   });
 
-  it('logout should clear storage', () => {
-    localStorage.setItem('ss_token', 'tok');
+  it('logout should clear storage and ask the backend to invalidate the cookie', () => {
     localStorage.setItem('ss_user', '{}');
+    localStorage.setItem('rol', 'ADMIN');
+    localStorage.setItem('idComercio', '1');
+
     service.logout();
-    expect(localStorage.getItem('ss_token')).toBeNull();
+
+    const req = httpMock.expectOne(`${API}/auth/logout`);
+    expect(req.request.method).toBe('POST');
+    expect(req.request.withCredentials).toBe(true);
+    req.flush({});
+
     expect(localStorage.getItem('ss_user')).toBeNull();
+    expect(localStorage.getItem('rol')).toBeNull();
+    expect(localStorage.getItem('idComercio')).toBeNull();
   });
 
-  it('getToken should return token from storage', () => {
-    expect(service.getToken()).toBeNull();
-    localStorage.setItem('ss_token', 'mytoken');
-    expect(service.getToken()).toBe('mytoken');
+  it('logout should still clear local storage even if the backend call fails', () => {
+    localStorage.setItem('ss_user', '{}');
+
+    service.logout();
+
+    const req = httpMock.expectOne(`${API}/auth/logout`);
+    req.flush('error', { status: 500, statusText: 'Server Error' });
+
+    expect(localStorage.getItem('ss_user')).toBeNull();
   });
 
   it('getUser should return parsed user or null', () => {
@@ -73,9 +90,9 @@ describe('AuthService', () => {
     expect(service.getComercioLabel()).toBe('Comercio #3');
   });
 
-  it('isLoggedIn should reflect token presence', () => {
+  it('isLoggedIn should reflect stored session metadata (the token itself is an httpOnly cookie, unreadable from JS)', () => {
     expect(service.isLoggedIn()).toBe(false);
-    localStorage.setItem('ss_token', 'tok');
+    localStorage.setItem('ss_user', '{"email":"a@b.com","rol":"ADMIN","idComercio":null}');
     expect(service.isLoggedIn()).toBe(true);
   });
 

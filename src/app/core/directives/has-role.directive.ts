@@ -1,5 +1,5 @@
 import { Directive, Input, OnInit, TemplateRef, ViewContainerRef } from '@angular/core';
-import { decodeJwt, getRoleFromPayload, stripRolePrefix } from '../utils/jwt.util';
+import { stripRolePrefix } from '../utils/jwt.util';
 
 /**
  * Directiva estructural para mostrar/ocultar elementos según el rol del usuario logueado.
@@ -51,12 +51,12 @@ export class HasRoleDirective implements OnInit {
       return true;
     }
 
-    const token = localStorage.getItem('ss_token');
-    if (!token) {
+    // El rol guardado en el login (no el JWT: la cookie httpOnly no es legible desde JS).
+    const rol = localStorage.getItem('rol');
+    if (!rol) {
       return false;
     }
 
-    const rol = getRoleFromPayload(decodeJwt(token));
     return this.allowedRoles.includes(rol);
   }
 }

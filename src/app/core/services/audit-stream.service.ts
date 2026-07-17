@@ -1,7 +1,7 @@
 import { Injectable, NgZone, OnDestroy, inject } from '@angular/core';
 import { Observable, Subject } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { decodeJwt, getIdComercioFromPayload, getRoleFromPayload } from '../utils/jwt.util';
+import { AuthService } from './auth.service';
 
 const ADMIN_ROLE = 'ADMIN_SISTEMA';
 
@@ -19,13 +19,11 @@ export type StreamConnectionState = 'connected' | 'disconnected' | 'error';
 /**
  * Cliente SSE para GET /api/v1/bff/audit/stream.
  *
- * NOTA IMPORTANTE: el endpoint está protegido con JWT vía header
- * "Authorization: Bearer <token>". El EventSource nativo del navegador
- * NO permite enviar cabeceras personalizadas, por lo que una conexión
- * `new EventSource(url)` sería siempre rechazada con 401/403 por el BFF.
- * Por eso este servicio consume el stream con `fetch` + `ReadableStream`
- * (misma semántica de Server-Sent Events: "data: {...}\n\n"), pero
- * autenticado igual que cualquier otra petición del BFF.
+ * NOTA IMPORTANTE: el endpoint está protegido por la cookie httpOnly de sesión. El EventSource
+ * nativo del navegador no permite forzar el envío de credenciales de forma consistente entre
+ * navegadores para streams de larga duración, así que este servicio consume el stream con
+ * `fetch` + `ReadableStream` (misma semántica de Server-Sent Events: "data: {...}\n\n"),
+ * incluyendo la cookie vía `credentials: 'include'`.
  */
 @Injectable({
   providedIn: 'root'
@@ -33,6 +31,7 @@ export type StreamConnectionState = 'connected' | 'disconnected' | 'error';
 export class AuditStreamService implements OnDestroy {
   private readonly API = environment.apiUrl;
   private zone = inject(NgZone);
+  private authService = inject(AuthService);
 
   private abortController: AbortController | null = null;
   private events$ = new Subject<AlertaEscaladaEvent>();
@@ -42,8 +41,8 @@ export class AuditStreamService implements OnDestroy {
   connect(): Observable<AlertaEscaladaEvent> {
     this.disconnect();
 
-    const token = localStorage.getItem('ss_token');
-    if (!token) {
+    const user = this.authService.getUser();
+    if (!user) {
       this.zone.run(() => this.connectionState$.next('error'));
       return this.events$.asObservable();
     }
@@ -51,22 +50,17 @@ export class AuditStreamService implements OnDestroy {
     this.abortController = new AbortController();
 
     const headers: Record<string, string> = {
-      Authorization: `Bearer ${token}`,
       Accept: 'text/event-stream'
     };
 
     // El BFF exige X-Comercio-ID en toda request de un rol no-admin (mismo criterio que auth.interceptor.ts).
-    // Este servicio usa fetch() directo (no HttpClient), así que el interceptor no aplica aquí y hay que
-    // replicar la inyección del header manualmente decodificando el propio JWT.
-    const payload = decodeJwt(token);
-    const rol = getRoleFromPayload(payload);
-    const idComercio = getIdComercioFromPayload(payload);
-    if (rol !== ADMIN_ROLE && idComercio !== null) {
-      headers['X-Comercio-ID'] = idComercio.toString();
+    if (user.rol !== ADMIN_ROLE && user.idComercio !== null) {
+      headers['X-Comercio-ID'] = user.idComercio.toString();
     }
 
     fetch(`${this.API}/audit/stream`, {
       headers,
+      credentials: 'include',
       signal: this.abortController.signal
     })
       .then(response => {

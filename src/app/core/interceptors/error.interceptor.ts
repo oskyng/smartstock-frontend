@@ -3,8 +3,7 @@ import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
 import { ToastService } from '../services/toast.service';
-
-const SESSION_KEYS = ['ss_token', 'ss_user', 'ss_comercio_id', 'rol', 'idComercio'];
+import { AuthService } from '../services/auth.service';
 
 /**
  * Interceptor HTTP global de errores.
@@ -14,6 +13,7 @@ const SESSION_KEYS = ['ss_token', 'ss_user', 'ss_comercio_id', 'rol', 'idComerci
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   const router = inject(Router);
   const toast = inject(ToastService);
+  const authService = inject(AuthService);
 
   return next(req).pipe(
     catchError((error: unknown) => {
@@ -21,7 +21,9 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
         const isLoginRequest = req.url.includes('/auth/login');
 
         if (error.status === 401 && !isLoginRequest) {
-          SESSION_KEYS.forEach(key => localStorage.removeItem(key));
+          // Vía authService.logout() (no limpieza manual de localStorage) para que loggedIn$
+          // quede sincronizado con el estado real de la sesión.
+          authService.logout();
           toast.error('Tu sesión expiró o no es válida. Inicia sesión nuevamente.');
           router.navigate(['/login']);
         } else if (error.status === 403) {
