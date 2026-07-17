@@ -29,8 +29,12 @@
     <!-- GERENTE_TIENDA -->
     <ng-container *hasRole="'ROLE_GERENTE_TIENDA'">
       <p class="px-3 text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Gerencia de Tienda</p>
-      <a mat-list-item routerLink="/gerencia/dashboard" routerLinkActive="bg-blue-50 text-blue-600" class="!rounded-lg hover:bg-gray-100 transition-colors !h-auto !py-2">
+      <a mat-list-item routerLink="/dashboard" routerLinkActive="bg-blue-50 text-blue-600" class="!rounded-lg hover:bg-gray-100 transition-colors !h-auto !py-2">
         <mat-icon matListItemIcon class="mr-3 text-xl">dashboard</mat-icon>
+        <span class="font-medium text-sm">Dashboard</span>
+      </a>
+      <a mat-list-item routerLink="/gerencia/dashboard" routerLinkActive="bg-blue-50 text-blue-600" class="!rounded-lg hover:bg-gray-100 transition-colors !h-auto !py-2">
+        <mat-icon matListItemIcon class="mr-3 text-xl">tune</mat-icon>
         <span class="font-medium text-sm">Resumen de Tienda</span>
       </a>
       <a mat-list-item routerLink="/gerencia/control-auditoria" routerLinkActive="bg-blue-50 text-blue-600" class="!rounded-lg hover:bg-gray-100 transition-colors !h-auto !py-2">

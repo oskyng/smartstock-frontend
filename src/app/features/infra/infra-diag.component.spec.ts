@@ -1,22 +1,34 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { InfraDiagComponent } from './infra-diag.component';
-import { MockDataService } from '../../core/services/mock-data.service';
-import { of } from 'rxjs';
+import { ApiService, InfraStatus } from '../../core/services/api.service';
+import { of, throwError } from 'rxjs';
 
 describe('InfraDiagComponent', () => {
   let component: InfraDiagComponent;
   let fixture: ComponentFixture<InfraDiagComponent>;
-  let mockService: any;
+  let apiService: any;
+
+  const mockStatus: InfraStatus = {
+    timestamp: '2026-07-16T12:00:00',
+    servicios: [
+      { nombre: 'auth-service', url: 'http://localhost:8081', estado: 'UP', estadoBaseDatos: 'UP', latenciaMs: 12, detalle: null }
+    ],
+    kafkaEstado: 'OPERACIONAL',
+    kafkaNodos: 1,
+    topicos: [
+      { nombre: 'lote-creado', particiones: 1, factorReplicacion: 1, gruposConsumidores: [] }
+    ]
+  };
 
   beforeEach(async () => {
-    mockService = {
-      getKafkaLogs: vi.fn().mockReturnValue(of([]))
+    apiService = {
+      getInfraStatus: vi.fn().mockReturnValue(of(mockStatus))
     };
 
     await TestBed.configureTestingModule({
       imports: [InfraDiagComponent],
       providers: [
-        { provide: MockDataService, useValue: mockService }
+        { provide: ApiService, useValue: apiService }
       ]
     }).compileComponents();
 
@@ -29,13 +41,19 @@ describe('InfraDiagComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should load kafka logs on init', () => {
-    const mockLogs = [{ timestamp: '2024-01-01', topic: 'test' }];
-    mockService.getKafkaLogs.mockReturnValue(of(mockLogs));
+  it('should load infra status on init', () => {
+    expect(apiService.getInfraStatus).toHaveBeenCalled();
+    expect(component.servicios).toEqual(mockStatus.servicios);
+    expect(component.topicos).toEqual(mockStatus.topicos);
+    expect(component.cargando).toBe(false);
+  });
 
-    component.ngOnInit();
+  it('should flag error state when the request fails', () => {
+    apiService.getInfraStatus.mockReturnValue(throwError(() => new Error('down')));
 
-    expect(component.kafkaLogs).toEqual(mockLogs);
-    expect(mockService.getKafkaLogs).toHaveBeenCalled();
+    component.cargarEstado();
+
+    expect(component.error).toBe(true);
+    expect(component.cargando).toBe(false);
   });
 });

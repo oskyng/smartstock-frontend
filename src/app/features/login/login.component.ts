@@ -44,7 +44,7 @@ export class LoginComponent {
             this.router.navigate(['/admin/dashboard']);
             break;
           case 'GERENTE_TIENDA':
-            this.router.navigate(['/gerencia/dashboard']);
+            this.router.navigate(['/dashboard']);
             break;
           case 'OPERADOR_INVENTARIO':
             this.router.navigate(['/inventario/ingreso']);

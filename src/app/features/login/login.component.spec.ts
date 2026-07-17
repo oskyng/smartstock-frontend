@@ -42,6 +42,14 @@ describe('LoginComponent', () => {
     expect(router.navigate).toHaveBeenCalledWith(['/dashboard']);
   });
 
+  it('should navigate GERENTE_TIENDA to /dashboard on login', () => {
+    authService.login.mockReturnValue(of({ token: 'abc', email: 'gerente@test.com', rol: 'GERENTE_TIENDA' }));
+    component.email = 'gerente@test.com';
+    component.password = '123456';
+    component.onLogin();
+    expect(router.navigate).toHaveBeenCalledWith(['/dashboard']);
+  });
+
   it('should set error message on login failure with 403', () => {
     authService.login.mockReturnValue(throwError(() => ({ status: 403, error: { message: 'Bad credentials' } })));
     component.email = 'bad@test.com';
