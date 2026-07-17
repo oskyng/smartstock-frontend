@@ -64,8 +64,8 @@
         <mat-icon class="!text-red-600">warning</mat-icon>
       </div>
       <div>
-        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Escaladas</p>
-        <p class="text-2xl font-black text-gray-900">{{ kpiEscaladas }}</p>
+        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Omitidas</p>
+        <p class="text-2xl font-black text-gray-900">{{ kpiOmitidas }}</p>
       </div>
     </div>
   </div>
@@ -126,6 +126,10 @@
             <td class="!px-6 !py-4">
               <p class="font-bold text-gray-900">{{ a.productoNombre }}</p>
               <p class="text-[11px] text-gray-400">SKU / Cód. Barra: {{ a.codigoBarra }} · Lote #{{ a.loteId }}</p>
+              <p *ngIf="a.loteVencido" class="text-[11px] text-red-600 font-bold mt-0.5">
+                <mat-icon class="!text-sm !w-3.5 !h-3.5 align-text-bottom mr-0.5">dangerous</mat-icon>
+                Venció en góndola ({{ a.fechaVencimientoLote | date:'dd/MM/yyyy' }})
+              </p>
             </td>
             <td class="!px-6 !py-4 text-gray-700">{{ a.usuarioAsignadoNombre }}</td>
             <td class="!px-6 !py-4 text-xs text-gray-500">
@@ -139,7 +143,7 @@
                       'bg-yellow-50 text-yellow-700 border border-yellow-200': a.estadoAlerta === 'PENDIENTE',
                       'bg-green-50 text-green-700 border border-green-200': a.estadoAlerta === 'ATENDIDA_A_TIEMPO',
                       'bg-orange-50 text-orange-700 border border-orange-200': a.estadoAlerta === 'ATENDIDA_CON_RETRASO',
-                      'bg-red-50 text-red-700 border border-red-200': a.estadoAlerta === 'ESCALADA_AL_GERENTE'
+                      'bg-red-50 text-red-700 border border-red-200': a.estadoAlerta === 'OMITIDA'
                     }">
                 {{ etiquetaEstado(a.estadoAlerta) }}
               </span>
@@ -149,7 +153,7 @@
               <span *ngIf="!calcularRetraso(a)" class="text-[11px] text-gray-300">—</span>
             </td>
             <td class="!px-6 !py-4 !text-right">
-              <button *ngIf="a.estadoAlerta === 'ESCALADA_AL_GERENTE'" mat-flat-button
+              <button *ngIf="a.estadoAlerta === 'OMITIDA'" mat-flat-button
                       (click)="abrirIntervencion(a)"
                       matTooltip="Aplicar un ajuste manual o resolver el lote directamente"
                       class="!bg-red-600 !text-white !font-bold !text-[10px] !uppercase !tracking-wide">
@@ -168,7 +172,7 @@
   </div>
 </div>
 
-<!-- Modal: Intervenir Lote (acción de emergencia para alertas ESCALADA_AL_GERENTE) -->
+<!-- Modal: Intervenir Lote (acción de emergencia para alertas OMITIDA) -->
 <div *ngIf="mostrarModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-overlay">
   <div class="absolute inset-0 bg-black/50" (click)="cerrarModal()"></div>
 

@@ -19,10 +19,10 @@ describe('ControlAuditoriaComponent', () => {
   let sseState$: Subject<any>;
 
   const mockAlertas: AlertaAuditoria[] = [
-    { id: 1, loteId: 10, productoNombre: 'Yogurt', codigoBarra: '111', usuarioAsignadoId: 5, usuarioAsignadoNombre: 'Diego Silva', estadoAlerta: 'PENDIENTE', fechaLimiteAtencion: '2026-07-13T10:00:00', fechaAtencion: null, descripcionAlerta: 'desc' },
-    { id: 2, loteId: 11, productoNombre: 'Leche', codigoBarra: '222', usuarioAsignadoId: 5, usuarioAsignadoNombre: 'Diego Silva', estadoAlerta: 'ATENDIDA_A_TIEMPO', fechaLimiteAtencion: '2026-07-12T10:00:00', fechaAtencion: '2026-07-12T09:00:00', descripcionAlerta: 'desc' },
-    { id: 3, loteId: 12, productoNombre: 'Queso', codigoBarra: '333', usuarioAsignadoId: 6, usuarioAsignadoNombre: 'Ana Gomez', estadoAlerta: 'ATENDIDA_CON_RETRASO', fechaLimiteAtencion: '2026-07-12T10:00:00', fechaAtencion: '2026-07-12T12:30:00', descripcionAlerta: 'desc' },
-    { id: 4, loteId: 13, productoNombre: 'Pan', codigoBarra: '444', usuarioAsignadoId: 6, usuarioAsignadoNombre: 'Ana Gomez', estadoAlerta: 'ESCALADA_AL_GERENTE', fechaLimiteAtencion: '2020-01-01T10:00:00', fechaAtencion: null, descripcionAlerta: 'desc' }
+    { id: 1, loteId: 10, productoNombre: 'Yogurt', codigoBarra: '111', usuarioAsignadoId: 5, usuarioAsignadoNombre: 'Diego Silva', estadoAlerta: 'PENDIENTE', fechaLimiteAtencion: '2026-07-13T10:00:00', fechaAtencion: null, descripcionAlerta: 'desc', fechaVencimientoLote: '2026-07-20', loteVencido: false },
+    { id: 2, loteId: 11, productoNombre: 'Leche', codigoBarra: '222', usuarioAsignadoId: 5, usuarioAsignadoNombre: 'Diego Silva', estadoAlerta: 'ATENDIDA_A_TIEMPO', fechaLimiteAtencion: '2026-07-12T10:00:00', fechaAtencion: '2026-07-12T09:00:00', descripcionAlerta: 'desc', fechaVencimientoLote: '2026-07-18', loteVencido: false },
+    { id: 3, loteId: 12, productoNombre: 'Queso', codigoBarra: '333', usuarioAsignadoId: 6, usuarioAsignadoNombre: 'Ana Gomez', estadoAlerta: 'ATENDIDA_CON_RETRASO', fechaLimiteAtencion: '2026-07-12T10:00:00', fechaAtencion: '2026-07-12T12:30:00', descripcionAlerta: 'desc', fechaVencimientoLote: '2026-07-19', loteVencido: false },
+    { id: 4, loteId: 13, productoNombre: 'Pan', codigoBarra: '444', usuarioAsignadoId: 6, usuarioAsignadoNombre: 'Ana Gomez', estadoAlerta: 'OMITIDA', fechaLimiteAtencion: '2020-01-01T10:00:00', fechaAtencion: null, descripcionAlerta: 'desc', fechaVencimientoLote: '2020-01-02', loteVencido: true }
   ];
 
   beforeEach(async () => {
@@ -79,7 +79,7 @@ describe('ControlAuditoriaComponent', () => {
     expect(component.kpiPendientes).toBe(1);
     expect(component.kpiATiempo).toBe(1);
     expect(component.kpiConRetraso).toBe(1);
-    expect(component.kpiEscaladas).toBe(1);
+    expect(component.kpiOmitidas).toBe(1);
   });
 
   it('responsables should list unique assigned users', () => {
@@ -95,11 +95,11 @@ describe('ControlAuditoriaComponent', () => {
     expect(component.alertasFiltradas.length).toBe(2);
     expect(component.kpiPendientes).toBe(0);
     expect(component.kpiConRetraso).toBe(1);
-    expect(component.kpiEscaladas).toBe(1);
+    expect(component.kpiOmitidas).toBe(1);
   });
 
   it('filtroEstado should filter the list', () => {
-    component.filtroEstado = 'ESCALADA_AL_GERENTE';
+    component.filtroEstado = 'OMITIDA';
     component.onFiltroChange();
     expect(component.alertasFiltradas.length).toBe(1);
     expect(component.alertasFiltradas[0].id).toBe(4);
@@ -125,7 +125,7 @@ describe('ControlAuditoriaComponent', () => {
     expect(retraso).toBe('+2 horas tarde');
   });
 
-  it('calcularRetraso should compute a delay for an open ESCALADA_AL_GERENTE alert relative to now', () => {
+  it('calcularRetraso should compute a delay for an open OMITIDA alert relative to now', () => {
     const retraso = component.calcularRetraso(mockAlertas[3]);
     expect(retraso).toMatch(/tarde$/);
   });
