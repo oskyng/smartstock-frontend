@@ -47,11 +47,12 @@ jobs:
     needs: test-and-build
     runs-on: ubuntu-latest
     steps:
-      # El servicio "frontend" vive en el docker-compose.yml del repo smartstock-backend
-      # (misma red Docker que bff-service, requerida por el proxy de nginx.conf). DEPLOY_PATH
-      # debe apuntar al checkout de smartstock-backend en el servidor, y DEPLOY_HOST/DEPLOY_USER/
-      # DEPLOY_SSH_KEY deben configurarse en este repo con los mismos valores que en
-      # smartstock-backend (mismo servidor).
+      # El servicio "frontend" vive en el docker-compose.yml que el pipeline de
+      # smartstock-backend mantiene sincronizado por scp en DEPLOY_PATH (misma red Docker
+      # que bff-service, requerida por el proxy de nginx.conf). El servidor no tiene ningún
+      # repo clonado: solo ese docker-compose.yml y las imágenes de Docker Hub. DEPLOY_HOST/
+      # DEPLOY_USER/DEPLOY_SSH_KEY/DEPLOY_PATH deben configurarse en este repo con los mismos
+      # valores que en smartstock-backend (mismo servidor, misma carpeta).
       - name: Pull y recrear el contenedor frontend en el servidor
         uses: appleboy/ssh-action@v1
         with:
