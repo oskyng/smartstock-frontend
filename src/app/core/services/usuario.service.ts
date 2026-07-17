@@ -43,6 +43,10 @@ export interface UsuarioUpdateRequest {
   idRol: number;
 }
 
+export interface CambiarContrasenaRequest {
+  nuevaContrasena: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -71,5 +75,13 @@ export class UsuarioService {
 
   eliminarUsuario(id: number): Observable<void> {
     return this.http.delete<void>(`${this.API}/usuarios/${id}`);
+  }
+
+  reactivarUsuario(id: number): Observable<UsuarioResponse> {
+    return this.http.patch<UsuarioResponse>(`${this.API}/usuarios/${id}/reactivar`, {});
+  }
+
+  cambiarContrasena(id: number, request: CambiarContrasenaRequest): Observable<void> {
+    return this.http.patch<void>(`${this.API}/usuarios/${id}/password`, request);
   }
 }

@@ -46,7 +46,7 @@
             <tbody>
               <ng-container *ngFor="let u of usuarios">
                 <!-- Fila normal -->
-                <tr *ngIf="editandoId !== u.id" class="border-b hover:bg-gray-50 transition-colors">
+                <tr *ngIf="editandoId !== u.id && cambiandoPasswordId !== u.id" class="border-b hover:bg-gray-50 transition-colors">
                   <td class="!px-6 !py-4 font-bold text-gray-900">{{ u.nombre }} {{ u.apellido }}</td>
                   <td class="!px-6 !py-4 text-xs text-gray-500">{{ u.email }}</td>
                   <td class="!px-6 !py-4">
@@ -54,7 +54,7 @@
                   </td>
                   <td class="!px-6 !py-4 text-center">
                     <mat-chip [ngClass]="u.activo === 1 ? '!bg-green-50 !text-green-700 !border-green-200' : '!bg-gray-100 !text-gray-500 !border-gray-200'" class="!text-[10px] !font-black !uppercase !border">
-                      {{ u.activo === 1 ? 'Activo' : 'Inactivo' }}
+                      {{ u.activo === 1 ? 'Activo' : 'Suspendido' }}
                     </mat-chip>
                   </td>
                   <td class="!px-6 !py-4 !text-right">
@@ -62,8 +62,14 @@
                       <button mat-icon-button matTooltip="Editar" (click)="iniciarEdicion(u)">
                         <mat-icon class="!text-lg">edit</mat-icon>
                       </button>
-                      <button mat-icon-button color="warn" matTooltip="Desactivar" [disabled]="u.activo === 0" (click)="eliminarUsuario(u)">
-                        <mat-icon class="!text-lg">delete</mat-icon>
+                      <button mat-icon-button matTooltip="Cambiar contraseña" (click)="iniciarCambioContrasena(u)">
+                        <mat-icon class="!text-lg">key</mat-icon>
+                      </button>
+                      <button *ngIf="u.activo === 1" mat-icon-button color="warn" matTooltip="Suspender" (click)="eliminarUsuario(u)">
+                        <mat-icon class="!text-lg">block</mat-icon>
+                      </button>
+                      <button *ngIf="u.activo === 0" mat-icon-button color="primary" matTooltip="Reactivar" [disabled]="reactivandoId === u.id" (click)="reactivarUsuario(u)">
+                        <mat-icon class="!text-lg">restart_alt</mat-icon>
                       </button>
                     </ng-container>
                     <ng-template #sinPermiso>
@@ -109,6 +115,37 @@
                     </button>
                   </td>
                 </tr>
+
+                <!-- Fila de cambio de contraseña inline -->
+                <tr *ngIf="cambiandoPasswordId === u.id" [formGroup]="passwordForm" class="border-b bg-amber-50/40">
+                  <td class="!px-6 !py-4 font-bold text-gray-900" colspan="2">
+                    Nueva contraseña para {{ u.email }}
+                  </td>
+                  <td class="!px-3 !py-3" colspan="2">
+                    <mat-form-field appearance="outline" class="w-full !text-xs">
+                      <mat-label>Nueva contraseña</mat-label>
+                      <input matInput type="password" formControlName="nuevaContrasena" placeholder="Mínimo 8 caracteres">
+                      <mat-error *ngIf="isPasswordInvalid()">Debe tener al menos 8 caracteres.</mat-error>
+                    </mat-form-field>
+                    <p *ngIf="passwordForm.get('nuevaContrasena')?.value" class="text-[10px] font-bold -mt-1"
+                       [ngClass]="{
+                         'text-red-600': nuevaContrasenaStrength === 'debil',
+                         'text-amber-600': nuevaContrasenaStrength === 'media',
+                         'text-green-600': nuevaContrasenaStrength === 'fuerte'
+                       }">
+                      Fortaleza: {{ passwordStrengthLabel[nuevaContrasenaStrength] }}
+                    </p>
+                  </td>
+                  <td class="!px-3 !py-3 !text-right" colspan="1">
+                    <button mat-icon-button color="primary" matTooltip="Guardar" [disabled]="passwordForm.invalid || guardandoPassword" (click)="guardarContrasena(u.id)">
+                      <mat-spinner *ngIf="guardandoPassword" diameter="18"></mat-spinner>
+                      <mat-icon *ngIf="!guardandoPassword">check</mat-icon>
+                    </button>
+                    <button mat-icon-button matTooltip="Cancelar" [disabled]="guardandoPassword" (click)="cancelarCambioContrasena()">
+                      <mat-icon>close</mat-icon>
+                    </button>
+                  </td>
+                </tr>
               </ng-container>
             </tbody>
           </table>
@@ -140,8 +177,9 @@
 
             <mat-form-field appearance="outline" class="w-full">
               <mat-label>RUT</mat-label>
-              <input matInput type="text" formControlName="rut" placeholder="Ej: 11.111.111-1" maxlength="12">
-              <mat-error *ngIf="isInvalid('rut')">El RUT es obligatorio.</mat-error>
+              <input matInput type="text" formControlName="rut" appRutFormat placeholder="Ej: 11.111.111-1" maxlength="12">
+              <mat-error *ngIf="isInvalid('rut') && form.get('rut')?.hasError('required')">El RUT es obligatorio.</mat-error>
+              <mat-error *ngIf="isInvalid('rut') && form.get('rut')?.hasError('rutInvalido')">El RUT ingresado no es válido.</mat-error>
             </mat-form-field>
 
             <mat-form-field appearance="outline" class="w-full">
@@ -163,12 +201,22 @@
               <mat-error *ngIf="isInvalid('apellido')">El apellido es obligatorio.</mat-error>
             </mat-form-field>
 
-            <mat-form-field appearance="outline" class="w-full">
-              <mat-label>Contraseña</mat-label>
-              <input matInput type="password" formControlName="password" placeholder="Mínimo 8 caracteres">
-              <mat-error *ngIf="isInvalid('password') && form.get('password')?.hasError('required')">La contraseña es obligatoria.</mat-error>
-              <mat-error *ngIf="isInvalid('password') && form.get('password')?.hasError('minlength')">Debe tener al menos 8 caracteres.</mat-error>
-            </mat-form-field>
+            <div>
+              <mat-form-field appearance="outline" class="w-full">
+                <mat-label>Contraseña</mat-label>
+                <input matInput type="password" formControlName="password" placeholder="Mínimo 8 caracteres">
+                <mat-error *ngIf="isInvalid('password') && form.get('password')?.hasError('required')">La contraseña es obligatoria.</mat-error>
+                <mat-error *ngIf="isInvalid('password') && form.get('password')?.hasError('minlength')">Debe tener al menos 8 caracteres.</mat-error>
+              </mat-form-field>
+              <p *ngIf="form.get('password')?.value" class="text-[11px] font-bold -mt-3 mb-2"
+                 [ngClass]="{
+                   'text-red-600': passwordStrength === 'debil',
+                   'text-amber-600': passwordStrength === 'media',
+                   'text-green-600': passwordStrength === 'fuerte'
+                 }">
+                Fortaleza: {{ passwordStrengthLabel[passwordStrength] }}
+              </p>
+            </div>
 
             <mat-form-field appearance="outline" class="w-full">
               <mat-label>Rol</mat-label>

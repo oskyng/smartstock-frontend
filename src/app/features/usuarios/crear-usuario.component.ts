@@ -17,7 +17,10 @@ import { AdminService } from '../admin/services/admin.service';
 import { AuthService } from '../../core/services/auth.service';
 import { ToastService } from '../../core/services/toast.service';
 import { getRoleLabel } from '../../core/utils/role-label.util';
+import { rutValidator } from '../../core/utils/rut.util';
+import { passwordStrength, PASSWORD_STRENGTH_LABEL, PasswordStrength } from '../../core/utils/password-strength.util';
 import { SkeletonRowsComponent } from '../../shared/components/skeleton-rows/skeleton-rows.component';
+import { RutFormatDirective } from '../../shared/directives/rut-format.directive';
 
 interface ComercioOption {
   id: number;
@@ -36,12 +39,13 @@ const ROLES_ASIGNABLES: Record<string, string[]> = {
   imports: [
     CommonModule, ReactiveFormsModule, MatCardModule, MatFormFieldModule, MatInputModule,
     MatSelectModule, MatButtonModule, MatIconModule, MatTableModule, MatChipsModule,
-    MatTooltipModule, MatProgressSpinnerModule, SkeletonRowsComponent
+    MatTooltipModule, MatProgressSpinnerModule, SkeletonRowsComponent, RutFormatDirective
   ],
   templateUrl: './crear-usuario.component.html'
 })
 export class CrearUsuarioComponent implements OnInit {
   readonly getRoleLabel = getRoleLabel;
+  readonly passwordStrengthLabel = PASSWORD_STRENGTH_LABEL;
 
   form: FormGroup;
   roles: RolResponse[] = [];
@@ -62,6 +66,12 @@ export class CrearUsuarioComponent implements OnInit {
   editForm: FormGroup;
   guardandoEdicion = false;
 
+  cambiandoPasswordId: number | null = null;
+  passwordForm: FormGroup;
+  guardandoPassword = false;
+
+  reactivandoId: number | null = null;
+
   constructor(
     private fb: FormBuilder,
     private usuarioService: UsuarioService,
@@ -72,7 +82,7 @@ export class CrearUsuarioComponent implements OnInit {
   ) {
     this.esAdmin = this.authService.getUser()?.rol === 'ADMIN_SISTEMA';
     this.form = this.fb.group({
-      rut: ['', [Validators.required, Validators.maxLength(12)]],
+      rut: ['', [Validators.required, Validators.maxLength(12), rutValidator()]],
       nombre: ['', [Validators.required, Validators.maxLength(50)]],
       apellido: ['', [Validators.required, Validators.maxLength(50)]],
       email: ['', [Validators.required, Validators.email, Validators.maxLength(100)]],
@@ -85,6 +95,9 @@ export class CrearUsuarioComponent implements OnInit {
       apellido: ['', [Validators.required, Validators.maxLength(50)]],
       email: ['', [Validators.required, Validators.email, Validators.maxLength(100)]],
       idRol: [null, Validators.required]
+    });
+    this.passwordForm = this.fb.group({
+      nuevaContrasena: ['', [Validators.required, Validators.minLength(8)]]
     });
   }
 
@@ -104,6 +117,21 @@ export class CrearUsuarioComponent implements OnInit {
   isEditInvalid(controlName: string): boolean {
     const control = this.editForm.get(controlName);
     return !!control && control.invalid && (control.touched || control.dirty);
+  }
+
+  isPasswordInvalid(): boolean {
+    const control = this.passwordForm.get('nuevaContrasena');
+    return !!control && control.invalid && (control.touched || control.dirty);
+  }
+
+  /** Fortaleza informativa (no bloquea el envío) de la contraseña del formulario de creación. */
+  get passwordStrength(): PasswordStrength {
+    return passwordStrength(this.form.get('password')?.value);
+  }
+
+  /** Fortaleza informativa de la contraseña en el formulario inline de cambio de contraseña. */
+  get nuevaContrasenaStrength(): PasswordStrength {
+    return passwordStrength(this.passwordForm.get('nuevaContrasena')?.value);
   }
 
   /** Un GERENTE_TIENDA solo puede editar/eliminar usuarios OPERADOR_INVENTARIO/REPONEDOR_SALA (espeja el backend). */
@@ -244,17 +272,71 @@ export class CrearUsuarioComponent implements OnInit {
   }
 
   eliminarUsuario(usuario: UsuarioResponse): void {
-    if (!confirm(`¿Está seguro de desactivar al usuario "${usuario.email}"?`)) {
+    if (!confirm(`¿Está seguro de suspender al usuario "${usuario.email}"?`)) {
       return;
     }
     this.usuarioService.eliminarUsuario(usuario.id).subscribe({
       next: () => {
-        this.toast.success('Usuario desactivado exitosamente.');
+        this.toast.success('Usuario suspendido exitosamente.');
         this.cargarUsuarios();
       },
       error: (err: HttpErrorResponse) => {
-        const msg: string = err.error?.message || 'Error al desactivar el usuario.';
+        const msg: string = err.error?.message || 'Error al suspender el usuario.';
         this.toast.error(msg);
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  reactivarUsuario(usuario: UsuarioResponse): void {
+    if (!confirm(`¿Reactivar al usuario "${usuario.email}"?`)) {
+      return;
+    }
+    this.reactivandoId = usuario.id;
+    this.usuarioService.reactivarUsuario(usuario.id).subscribe({
+      next: () => {
+        this.toast.success('Usuario reactivado exitosamente.');
+        this.reactivandoId = null;
+        this.cargarUsuarios();
+      },
+      error: (err: HttpErrorResponse) => {
+        const msg: string = err.error?.message || 'Error al reactivar el usuario.';
+        this.toast.error(msg);
+        this.reactivandoId = null;
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  iniciarCambioContrasena(usuario: UsuarioResponse): void {
+    this.cambiandoPasswordId = usuario.id;
+    this.passwordForm.reset();
+  }
+
+  cancelarCambioContrasena(): void {
+    this.cambiandoPasswordId = null;
+    this.passwordForm.reset();
+  }
+
+  guardarContrasena(id: number): void {
+    if (this.passwordForm.invalid) {
+      this.passwordForm.markAllAsTouched();
+      return;
+    }
+
+    this.guardandoPassword = true;
+    this.usuarioService.cambiarContrasena(id, this.passwordForm.value).subscribe({
+      next: () => {
+        this.toast.success('Contraseña actualizada exitosamente.');
+        this.guardandoPassword = false;
+        this.cambiandoPasswordId = null;
+        this.passwordForm.reset();
+        this.cdr.markForCheck();
+      },
+      error: (err: HttpErrorResponse) => {
+        const msg: string = err.error?.message || 'Error al actualizar la contraseña.';
+        this.toast.error(msg);
+        this.guardandoPassword = false;
         this.cdr.markForCheck();
       }
     });
