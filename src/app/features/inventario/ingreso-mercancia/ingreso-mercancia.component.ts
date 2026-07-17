@@ -1,14 +1,16 @@
-import { ChangeDetectorRef, Component } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { InventoryService } from '../services/inventory.service';
+import { ApiService, ProductoResponse, ProveedorResponse } from '../../../core/services/api.service';
 import { ToastService } from '../../../core/services/toast.service';
 
 /** Límites de negocio razonables para evitar valores absurdos que rompan la UI o el backend. */
@@ -41,10 +43,10 @@ function fechaFuturaValidator(control: AbstractControl): ValidationErrors | null
 @Component({
   selector: 'app-ingreso-mercancia',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, MatCardModule, MatFormFieldModule, MatInputModule, MatButtonModule, MatIconModule, MatProgressSpinnerModule],
+  imports: [CommonModule, ReactiveFormsModule, MatCardModule, MatFormFieldModule, MatInputModule, MatSelectModule, MatButtonModule, MatIconModule, MatProgressSpinnerModule],
   templateUrl: './ingreso-mercancia.component.html'
 })
-export class IngresoMercanciaComponent {
+export class IngresoMercanciaComponent implements OnInit {
   readonly mensajeFechaInvalida = MENSAJE_FECHA_INVALIDA;
   readonly maxCantidad = MAX_CANTIDAD;
   readonly maxMonto = MAX_MONTO;
@@ -54,9 +56,15 @@ export class IngresoMercanciaComponent {
   mensajeExito: string | null = null;
   mensajeError: string | null = null;
 
+  productos: ProductoResponse[] = [];
+  proveedores: ProveedorResponse[] = [];
+  cargandoOpciones = true;
+  errorOpciones: string | null = null;
+
   constructor(
     private fb: FormBuilder,
     private inventoryService: InventoryService,
+    private apiService: ApiService,
     private toast: ToastService,
     private cdr: ChangeDetectorRef
   ) {
@@ -67,6 +75,35 @@ export class IngresoMercanciaComponent {
       costoUnitario: [null, [Validators.required, Validators.min(0.01), Validators.max(MAX_MONTO)]],
       precioDinamico: [null, [Validators.required, Validators.min(0.01), Validators.max(MAX_MONTO)]],
       fechaVencimiento: ['', [Validators.required, fechaFuturaValidator]]
+    });
+  }
+
+  ngOnInit(): void {
+    this.cargarOpciones();
+  }
+
+  /** Carga los productos y proveedores del comercio para poblar los selectores del formulario. */
+  cargarOpciones(): void {
+    this.cargandoOpciones = true;
+    this.errorOpciones = null;
+
+    let pendientes = 2;
+    const onFinally = () => {
+      pendientes--;
+      if (pendientes === 0) {
+        this.cargandoOpciones = false;
+        this.cdr.markForCheck();
+      }
+    };
+
+    this.apiService.getProductos().subscribe({
+      next: (data) => { this.productos = data; onFinally(); },
+      error: () => { this.errorOpciones = 'No se pudieron cargar los productos.'; onFinally(); }
+    });
+
+    this.apiService.getProveedores().subscribe({
+      next: (data) => { this.proveedores = data; onFinally(); },
+      error: () => { this.errorOpciones = 'No se pudieron cargar los proveedores.'; onFinally(); }
     });
   }
 
