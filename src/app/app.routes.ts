@@ -20,11 +20,15 @@ export const routes: Routes = [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       {
         path: 'dashboard',
-        loadComponent: () => import('./features/dashboard/dashboard.component').then(m => m.DashboardComponent)
+        loadComponent: () => import('./features/dashboard/dashboard.component').then(m => m.DashboardComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['GERENTE_TIENDA'] }
       },
       {
         path: 'inventory',
-        loadComponent: () => import('./features/inventory/inventory.component').then(m => m.InventoryComponent)
+        loadComponent: () => import('./features/inventory/inventory.component').then(m => m.InventoryComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['OPERADOR_INVENTARIO'] }
       },
       {
         path: 'alerts',
@@ -34,7 +38,9 @@ export const routes: Routes = [
       },
       {
         path: 'config',
-        loadComponent: () => import('./features/alerts/config.component').then(m => m.ConfigComponent)
+        loadComponent: () => import('./features/alerts/config.component').then(m => m.ConfigComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['GERENTE_TIENDA'] }
       },
       {
         path: 'admin',
