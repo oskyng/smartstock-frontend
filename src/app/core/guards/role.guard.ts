@@ -1,29 +1,23 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
-import { decodeJwt, getRoleFromPayload, isTokenExpired } from '../utils/jwt.util';
 
 /**
- * Guard de autorización por rol. Lee el claim 'rol' del JWT (sin prefijo ROLE_)
- * y lo compara contra `route.data['roles']`. Si el usuario navega manualmente
- * a una ruta que no le corresponde, lo redirige a la página de 403.
+ * Guard de autorización por rol. Compara el rol guardado en el login (localStorage['rol'],
+ * no el JWT en sí: la cookie httpOnly no es legible desde JS) contra `route.data['roles']`.
+ * Si el usuario navega manualmente a una ruta que no le corresponde, lo redirige a 403.
+ *
+ * No valida expiración aquí (no hay claim 'exp' legible sin decodificar el token): si la cookie
+ * expiró, la siguiente petición al backend recibe 401 y errorInterceptor cierra la sesión.
  */
 export const roleGuard: CanActivateFn = (route) => {
   const router = inject(Router);
   const allowedRoles: string[] = route.data?.['roles'] ?? [];
 
-  const token = localStorage.getItem('ss_token');
-  if (!token) {
+  const userRole = localStorage.getItem('rol');
+  if (!userRole) {
     router.navigate(['/login']);
     return false;
   }
-
-  const payload = decodeJwt(token);
-  if (!payload || isTokenExpired(payload)) {
-    router.navigate(['/login']);
-    return false;
-  }
-
-  const userRole = getRoleFromPayload(payload);
 
   if (allowedRoles.length === 0 || allowedRoles.includes(userRole)) {
     return true;

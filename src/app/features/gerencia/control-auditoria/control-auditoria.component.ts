@@ -22,7 +22,7 @@ const ESTADOS: { valor: EstadoAlertaAuditoria; etiqueta: string }[] = [
   { valor: 'PENDIENTE', etiqueta: 'Pendiente' },
   { valor: 'ATENDIDA_A_TIEMPO', etiqueta: 'Atendida a Tiempo' },
   { valor: 'ATENDIDA_CON_RETRASO', etiqueta: 'Atendida con Retraso' },
-  { valor: 'ESCALADA_AL_GERENTE', etiqueta: 'Escalada al Gerente' }
+  { valor: 'OMITIDA', etiqueta: 'Omitida' }
 ];
 
 @Component({
@@ -137,8 +137,8 @@ export class ControlAuditoriaComponent implements OnInit, OnDestroy {
     return this.alertasFiltradas.filter(a => a.estadoAlerta === 'ATENDIDA_CON_RETRASO').length;
   }
 
-  get kpiEscaladas(): number {
-    return this.alertasFiltradas.filter(a => a.estadoAlerta === 'ESCALADA_AL_GERENTE').length;
+  get kpiOmitidas(): number {
+    return this.alertasFiltradas.filter(a => a.estadoAlerta === 'OMITIDA').length;
   }
 
   limpiarFiltros(): void {
@@ -157,7 +157,7 @@ export class ControlAuditoriaComponent implements OnInit, OnDestroy {
    * después del límite, devuelve un texto tipo "+2 horas tarde"; si no hay retraso, null.
    */
   calcularRetraso(alerta: AlertaAuditoria): string | null {
-    if (alerta.estadoAlerta !== 'ATENDIDA_CON_RETRASO' && alerta.estadoAlerta !== 'ESCALADA_AL_GERENTE') {
+    if (alerta.estadoAlerta !== 'ATENDIDA_CON_RETRASO' && alerta.estadoAlerta !== 'OMITIDA') {
       return null;
     }
     const limite = new Date(alerta.fechaLimiteAtencion).getTime();

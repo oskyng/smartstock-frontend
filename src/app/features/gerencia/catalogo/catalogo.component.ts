@@ -10,7 +10,9 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ToastService } from '../../../core/services/toast.service';
+import { rutValidator } from '../../../core/utils/rut.util';
 import { SkeletonRowsComponent } from '../../../shared/components/skeleton-rows/skeleton-rows.component';
+import { RutFormatDirective } from '../../../shared/directives/rut-format.directive';
 
 @Component({
   selector: 'app-catalogo',
@@ -18,7 +20,7 @@ import { SkeletonRowsComponent } from '../../../shared/components/skeleton-rows/
   imports: [
     CommonModule, ReactiveFormsModule, MatCardModule, MatIconModule, MatTableModule,
     MatButtonModule, MatFormFieldModule, MatInputModule, MatProgressSpinnerModule,
-    SkeletonRowsComponent
+    SkeletonRowsComponent, RutFormatDirective
   ],
   templateUrl: './catalogo.component.html'
 })
@@ -47,7 +49,7 @@ export class CatalogoComponent implements OnInit {
       nombre: ['', [Validators.required, Validators.maxLength(50)]]
     });
     this.proveedorForm = this.fb.group({
-      rutEmpresa: ['', [Validators.required, Validators.maxLength(12)]],
+      rutEmpresa: ['', [Validators.required, Validators.maxLength(12), rutValidator()]],
       razonSocial: ['', [Validators.required, Validators.maxLength(100)]],
       contactoEmail: ['', [Validators.required, Validators.email, Validators.maxLength(100)]]
     });

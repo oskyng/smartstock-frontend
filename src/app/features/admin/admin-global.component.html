@@ -102,12 +102,13 @@
           <form [formGroup]="comercioForm" (ngSubmit)="guardarComercio()" class="space-y-6">
             <mat-form-field appearance="outline" class="w-full">
               <mat-label>RUT Empresa</mat-label>
-              <input matInput type="text" formControlName="rutEmpresa" placeholder="Ej: 76.123.456-7" maxlength="12">
-              <mat-error *ngIf="isInvalid('rutEmpresa')">Campo obligatorio</mat-error>
+              <input matInput type="text" formControlName="rutEmpresa" appRutFormat placeholder="Ej: 76.123.456-7" maxlength="12">
+              <mat-error *ngIf="isInvalid('rutEmpresa') && comercioForm.get('rutEmpresa')?.hasError('required')">Campo obligatorio</mat-error>
+              <mat-error *ngIf="isInvalid('rutEmpresa') && comercioForm.get('rutEmpresa')?.hasError('rutInvalido')">El RUT ingresado no es válido.</mat-error>
             </mat-form-field>
             <mat-form-field appearance="outline" class="w-full">
               <mat-label>Razón Social</mat-label>
-              <input matInput type="text" formControlName="razonSocial" placeholder="Ej: Supermercados del Sur S.A." maxlength="150">
+              <input matInput type="text" formControlName="razonSocial" placeholder="Ej: Supermercados del Sur S.A." maxlength="100">
               <mat-error *ngIf="isInvalid('razonSocial')">Campo obligatorio</mat-error>
             </mat-form-field>
             <mat-form-field appearance="outline" class="w-full">

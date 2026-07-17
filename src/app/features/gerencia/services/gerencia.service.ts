@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 
-export type EstadoAlertaAuditoria = 'PENDIENTE' | 'ATENDIDA_A_TIEMPO' | 'ATENDIDA_CON_RETRASO' | 'ESCALADA_AL_GERENTE';
+export type EstadoAlertaAuditoria = 'PENDIENTE' | 'ATENDIDA_A_TIEMPO' | 'ATENDIDA_CON_RETRASO' | 'OMITIDA';
 
 export interface AlertaAuditoria {
   id: number;
@@ -16,6 +16,9 @@ export interface AlertaAuditoria {
   fechaLimiteAtencion: string;
   fechaAtencion: string | null;
   descripcionAlerta: string;
+  fechaVencimientoLote: string | null;
+  /** true si el lote venció físicamente (fechaVencimientoLote ya pasó) sin haberse gestionado. */
+  loteVencido: boolean;
 }
 
 @Injectable({

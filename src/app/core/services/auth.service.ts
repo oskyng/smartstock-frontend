@@ -10,10 +10,9 @@ export interface AuthRequest {
 }
 
 export interface AuthResponse {
-  token: string;
   email: string;
   rol: string;
-  idComercio?: number;
+  idComercio?: number | null;
 }
 
 export interface StoredUser {
@@ -27,18 +26,21 @@ export interface StoredUser {
 })
 export class AuthService {
   private readonly API = environment.apiUrl;
-  private tokenKey = 'ss_token';
   private userKey = 'ss_user';
 
-  private loggedIn$ = new BehaviorSubject<boolean>(this.hasToken());
+  private loggedIn$ = new BehaviorSubject<boolean>(this.hasSession());
 
   constructor(private http: HttpClient) {}
 
+  /**
+   * El JWT viaja en una cookie httpOnly que el propio backend setea en la respuesta (ver
+   * BffController.login) — nunca llega en el body ni es legible desde JS (mitiga robo de
+   * sesión vía XSS). `withCredentials` es necesario para que el navegador la reciba/adjunte.
+   */
   login(credentials: AuthRequest): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.API}/auth/login`, credentials).pipe(
+    return this.http.post<AuthResponse>(`${this.API}/auth/login`, credentials, { withCredentials: true }).pipe(
       tap(res => {
         const idComercio = res.idComercio ?? null;
-        localStorage.setItem(this.tokenKey, res.token);
         localStorage.setItem(this.userKey, JSON.stringify({ email: res.email, rol: res.rol, idComercio }));
         localStorage.setItem('rol', res.rol);
         if (idComercio !== null) {
@@ -53,17 +55,18 @@ export class AuthService {
     );
   }
 
+  /**
+   * Limpia el estado local y pide al backend que invalide la cookie httpOnly (JS no puede
+   * borrarla directamente). Best-effort: si la llamada de red falla, igual se limpia el estado
+   * local — la cookie expira sola al vencer su Max-Age.
+   */
   logout(): void {
-    localStorage.removeItem(this.tokenKey);
+    this.http.post(`${this.API}/auth/logout`, {}, { withCredentials: true }).subscribe({ error: () => {} });
     localStorage.removeItem(this.userKey);
     localStorage.removeItem('ss_comercio_id');
     localStorage.removeItem('rol');
     localStorage.removeItem('idComercio');
     this.loggedIn$.next(false);
-  }
-
-  getToken(): string | null {
-    return localStorage.getItem(this.tokenKey);
   }
 
   getUser(): StoredUser | null {
@@ -91,14 +94,20 @@ export class AuthService {
   }
 
   isLoggedIn(): boolean {
-    return this.hasToken();
+    return this.hasSession();
   }
 
   isLoggedIn$(): Observable<boolean> {
     return this.loggedIn$.asObservable();
   }
 
-  private hasToken(): boolean {
-    return !!localStorage.getItem(this.tokenKey);
+  /**
+   * El JWT es una cookie httpOnly invisible a JS, así que "sesión activa" ya no puede verificarse
+   * mirando el token: se infiere de la presencia de los metadatos no sensibles (email/rol/idComercio)
+   * guardados en el login. La fuente de verdad real sigue siendo el backend (401 si la cookie
+   * expiró o no existe, manejado por errorInterceptor).
+   */
+  private hasSession(): boolean {
+    return !!localStorage.getItem(this.userKey);
   }
 }

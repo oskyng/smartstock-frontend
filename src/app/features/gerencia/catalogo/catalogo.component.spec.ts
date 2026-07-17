@@ -16,7 +16,7 @@ describe('CatalogoComponent', () => {
       getCategorias: vi.fn().mockReturnValue(of(mockCategorias)),
       crearCategoria: vi.fn().mockReturnValue(of({ id: 2, nombre: 'LACTEOS' })),
       getProveedores: vi.fn().mockReturnValue(of(mockProveedores)),
-      crearProveedor: vi.fn().mockReturnValue(of({ id: 2, rutEmpresa: '76.222.222-2', razonSocial: 'Proveedor Dos', contactoEmail: 'dos@proveedor.cl' }))
+      crearProveedor: vi.fn().mockReturnValue(of({ id: 2, rutEmpresa: '76.222.222-1', razonSocial: 'Proveedor Dos', contactoEmail: 'dos@proveedor.cl' }))
     };
 
     await TestBed.configureTestingModule({
@@ -76,9 +76,9 @@ describe('CatalogoComponent', () => {
   });
 
   it('crearProveedor should submit and reload the list on success', () => {
-    component.proveedorForm.setValue({ rutEmpresa: '76.222.222-2', razonSocial: 'Proveedor Dos', contactoEmail: 'dos@proveedor.cl' });
+    component.proveedorForm.setValue({ rutEmpresa: '76.222.222-1', razonSocial: 'Proveedor Dos', contactoEmail: 'dos@proveedor.cl' });
     component.crearProveedor();
-    expect(apiService.crearProveedor).toHaveBeenCalledWith({ rutEmpresa: '76.222.222-2', razonSocial: 'Proveedor Dos', contactoEmail: 'dos@proveedor.cl' });
+    expect(apiService.crearProveedor).toHaveBeenCalledWith({ rutEmpresa: '76.222.222-1', razonSocial: 'Proveedor Dos', contactoEmail: 'dos@proveedor.cl' });
     expect(apiService.getProveedores).toHaveBeenCalledTimes(2);
   });
 });

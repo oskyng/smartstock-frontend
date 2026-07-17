@@ -43,6 +43,7 @@ export interface ProveedorRequest {
 export interface LoteResponse {
   id: number;
   nombreProducto: string;
+  nombreCategoria: string;
   cantidadActual: number;
   precioDinamico: number;
   fechaVencimiento: string;
@@ -85,6 +86,37 @@ export interface DashboardResponse {
   lotesRecientes: LoteResponse[];
   alertasPendientes: AlertaResponse[];
   reglasActivas: ReglaDepreciacionResponse[];
+  /** Suma de cantidadActual x costoUnitario de lotes en riesgo (calculado en el backend; el costo por lote nunca se expone). */
+  capitalEnRiesgo: number;
+}
+
+export interface ServiceHealth {
+  nombre: string;
+  url: string;
+  estado: string;
+  estadoBaseDatos: string | null;
+  latenciaMs: number;
+  detalle: string | null;
+}
+
+export interface ConsumerGroupInfo {
+  groupId: string;
+  estado: string;
+}
+
+export interface KafkaTopicInfo {
+  nombre: string;
+  particiones: number;
+  factorReplicacion: number;
+  gruposConsumidores: ConsumerGroupInfo[];
+}
+
+export interface InfraStatus {
+  timestamp: string;
+  servicios: ServiceHealth[];
+  kafkaEstado: string;
+  kafkaNodos: number;
+  topicos: KafkaTopicInfo[];
 }
 
 @Injectable({
@@ -181,5 +213,10 @@ export class ApiService {
 
   eliminarComercio(id: number): Observable<void> {
     return this.http.delete<void>(`${this.API}/comercios/${id}`);
+  }
+
+  // Diagnóstico de infraestructura
+  getInfraStatus(): Observable<InfraStatus> {
+    return this.http.get<InfraStatus>(`${this.API}/infra/status`);
   }
 }

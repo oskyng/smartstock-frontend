@@ -12,24 +12,37 @@
     <mat-icon class="text-red-600">error</mat-icon>
     {{ mensajeError }}
   </div>
+  <div *ngIf="errorOpciones" class="p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 font-medium flex items-center gap-2">
+    <mat-icon class="text-red-600">error</mat-icon>
+    {{ errorOpciones }}
+  </div>
+  <div *ngIf="!cargandoOpciones && !errorOpciones && (productos.length === 0 || proveedores.length === 0)"
+       class="p-4 bg-amber-50 border border-amber-200 rounded-xl text-amber-700 font-medium flex items-center gap-2">
+    <mat-icon class="text-amber-600">info</mat-icon>
+    <span>Antes de registrar un lote, tu comercio necesita al menos un producto y un proveedor registrados.</span>
+  </div>
 
   <mat-card class="!shadow-sm">
     <mat-card-content class="p-6 md:p-8">
       <form [formGroup]="form" (ngSubmit)="onSubmit()" class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2">
 
         <mat-form-field appearance="outline" class="w-full">
-          <mat-label>ID Producto</mat-label>
-          <input matInput type="number" formControlName="idProducto" placeholder="Ej: 1" min="1" step="1">
+          <mat-label>Producto</mat-label>
+          <mat-select formControlName="idProducto" [disabled]="cargandoOpciones">
+            <mat-option *ngFor="let p of productos" [value]="p.id">{{ p.nombre }} ({{ p.codigoBarra }})</mat-option>
+          </mat-select>
           <mat-error *ngIf="isInvalid('idProducto')">
-            {{ form.get('idProducto')?.hasError('required') ? 'El ID del producto es obligatorio.' : 'Debe ser al menos 1.' }}
+            El producto es obligatorio.
           </mat-error>
         </mat-form-field>
 
         <mat-form-field appearance="outline" class="w-full">
-          <mat-label>ID Proveedor</mat-label>
-          <input matInput type="number" formControlName="idProveedor" placeholder="Ej: 1" min="1" step="1">
+          <mat-label>Proveedor</mat-label>
+          <mat-select formControlName="idProveedor" [disabled]="cargandoOpciones">
+            <mat-option *ngFor="let p of proveedores" [value]="p.id">{{ p.razonSocial }}</mat-option>
+          </mat-select>
           <mat-error *ngIf="isInvalid('idProveedor')">
-            {{ form.get('idProveedor')?.hasError('required') ? 'El ID del proveedor es obligatorio.' : 'Debe ser al menos 1.' }}
+            El proveedor es obligatorio.
           </mat-error>
         </mat-form-field>
 

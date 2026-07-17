@@ -34,7 +34,7 @@
     </mat-card>
   </div>
 
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-6" *ngIf="!loading">
+  <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6" *ngIf="!loading">
     <mat-card class="!shadow-sm">
       <mat-card-content class="p-6">
         <div class="flex justify-between items-start">
@@ -76,6 +76,20 @@
         </div>
       </mat-card-content>
     </mat-card>
+
+    <mat-card class="!shadow-sm" matTooltip="Costo de la mercadería en lotes que ya cruzaron el umbral crítico de vencimiento de su categoría">
+      <mat-card-content class="p-6">
+        <div class="flex justify-between items-start">
+          <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+            <mat-icon class="text-purple-600">paid</mat-icon>
+          </div>
+        </div>
+        <div class="mt-4">
+          <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Capital en Riesgo</p>
+          <p class="text-2xl font-bold text-gray-900 mt-1">${{ capitalEnRiesgo | number:'1.0-0' }}</p>
+        </div>
+      </mat-card-content>
+    </mat-card>
   </div>
 
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-6" *ngIf="!loading">
@@ -87,27 +101,16 @@
             <p class="text-xs text-gray-500">Visualización rápida de los departamentos con mayor capital comprometido.</p>
           </div>
         </div>
-        <!-- Placeholder para gráfico -->
-        <div class="flex items-end justify-between h-40 mt-10 px-4">
-          <div class="flex flex-col items-center gap-2">
-            <div class="w-12 bg-blue-100 h-20 rounded-t"></div>
-            <span class="text-[10px] font-bold text-gray-400 uppercase">Lácteos</span>
-          </div>
-          <div class="flex flex-col items-center gap-2">
-            <div class="w-12 bg-blue-200 h-32 rounded-t"></div>
-            <span class="text-[10px] font-bold text-gray-400 uppercase">Fiambrería</span>
-          </div>
-          <div class="flex flex-col items-center gap-2">
-            <div class="w-12 bg-blue-400 h-24 rounded-t"></div>
-            <span class="text-[10px] font-bold text-gray-400 uppercase">Bebidas</span>
-          </div>
-          <div class="flex flex-col items-center gap-2">
-            <div class="w-12 bg-blue-300 h-16 rounded-t"></div>
-            <span class="text-[10px] font-bold text-gray-400 uppercase">Aseo</span>
-          </div>
-          <div class="flex flex-col items-center gap-2">
-            <div class="w-12 bg-blue-500 h-28 rounded-t"></div>
-            <span class="text-[10px] font-bold text-gray-400 uppercase">Panadería</span>
+        <div *ngIf="riesgoPorCategoria.length === 0" class="flex flex-col items-center justify-center h-40 text-center">
+          <mat-icon class="!text-3xl text-gray-300 mb-2">check_circle</mat-icon>
+          <p class="text-gray-400 text-sm">Sin lotes críticos o por vencer en este momento.</p>
+        </div>
+
+        <div *ngIf="riesgoPorCategoria.length > 0" class="flex items-end justify-between gap-2 h-40 mt-10 px-4">
+          <div *ngFor="let item of riesgoPorCategoria.slice(0, 6)" class="flex flex-col items-center justify-end gap-2 flex-1"
+               [matTooltip]="item.categoria + ': $' + (item.valor | number:'1.0-0')">
+            <div class="w-full max-w-12 bg-blue-400 rounded-t" [style.height.px]="20 + item.porcentaje"></div>
+            <span class="text-[10px] font-bold text-gray-400 uppercase text-center text-truncate-tooltip w-full">{{ item.categoria }}</span>
           </div>
         </div>
       </mat-card-content>

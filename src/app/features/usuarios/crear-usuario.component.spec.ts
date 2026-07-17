@@ -32,7 +32,9 @@ describe('CrearUsuarioComponent', () => {
       crearUsuario: vi.fn().mockReturnValue(of({ mensaje: 'ok', usuario: { email: 'x@x.com', rol: 'REPONEDOR_SALA' } })),
       listarUsuarios: vi.fn().mockReturnValue(of(mockUsuarios)),
       actualizarUsuario: vi.fn().mockReturnValue(of(mockUsuarios[0])),
-      eliminarUsuario: vi.fn().mockReturnValue(of(undefined))
+      eliminarUsuario: vi.fn().mockReturnValue(of(undefined)),
+      reactivarUsuario: vi.fn().mockReturnValue(of(mockUsuarios[0])),
+      cambiarContrasena: vi.fn().mockReturnValue(of(undefined))
     };
     adminService = {
       obtenerComercios: vi.fn().mockReturnValue(of([{ id: 1, razonSocial: 'Comercio Uno' }]))
@@ -168,5 +170,63 @@ describe('CrearUsuarioComponent', () => {
     vi.spyOn(window, 'confirm').mockReturnValue(false);
     component.eliminarUsuario(mockUsuarios[0]);
     expect(usuarioService.eliminarUsuario).not.toHaveBeenCalled();
+  });
+
+  it('reactivarUsuario should confirm and reload the list on success', () => {
+    configure('ADMIN_SISTEMA');
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    const suspendido = { ...mockUsuarios[0], activo: 0 };
+    component.reactivarUsuario(suspendido);
+    expect(usuarioService.reactivarUsuario).toHaveBeenCalledWith(5);
+    expect(toastService.success).toHaveBeenCalled();
+    expect(component.reactivandoId).toBeNull();
+  });
+
+  it('reactivarUsuario should do nothing if not confirmed', () => {
+    configure('ADMIN_SISTEMA');
+    vi.spyOn(window, 'confirm').mockReturnValue(false);
+    component.reactivarUsuario({ ...mockUsuarios[0], activo: 0 });
+    expect(usuarioService.reactivarUsuario).not.toHaveBeenCalled();
+  });
+
+  it('iniciarCambioContrasena should open the inline form for the selected user', () => {
+    configure('ADMIN_SISTEMA');
+    component.iniciarCambioContrasena(mockUsuarios[0]);
+    expect(component.cambiandoPasswordId).toBe(5);
+    expect(component.passwordForm.value.nuevaContrasena).toBeFalsy();
+  });
+
+  it('cancelarCambioContrasena should clear the state', () => {
+    configure('ADMIN_SISTEMA');
+    component.iniciarCambioContrasena(mockUsuarios[0]);
+    component.cancelarCambioContrasena();
+    expect(component.cambiandoPasswordId).toBeNull();
+  });
+
+  it('guardarContrasena should not call the service when the form is invalid', () => {
+    configure('ADMIN_SISTEMA');
+    component.iniciarCambioContrasena(mockUsuarios[0]);
+    component.guardarContrasena(5);
+    expect(usuarioService.cambiarContrasena).not.toHaveBeenCalled();
+  });
+
+  it('guardarContrasena should submit and close the inline form on success', () => {
+    configure('ADMIN_SISTEMA');
+    component.iniciarCambioContrasena(mockUsuarios[0]);
+    component.passwordForm.setValue({ nuevaContrasena: 'NuevaClave123' });
+    component.guardarContrasena(5);
+    expect(usuarioService.cambiarContrasena).toHaveBeenCalledWith(5, { nuevaContrasena: 'NuevaClave123' });
+    expect(toastService.success).toHaveBeenCalled();
+    expect(component.cambiandoPasswordId).toBeNull();
+  });
+
+  it('guardarContrasena should show a toast error on failure', () => {
+    configure('ADMIN_SISTEMA');
+    usuarioService.cambiarContrasena.mockReturnValue(throwError(() => ({ error: { message: 'No autorizado' } })));
+    component.iniciarCambioContrasena(mockUsuarios[0]);
+    component.passwordForm.setValue({ nuevaContrasena: 'NuevaClave123' });
+    component.guardarContrasena(5);
+    expect(toastService.error).toHaveBeenCalledWith('No autorizado');
+    expect(component.guardandoPassword).toBe(false);
   });
 });

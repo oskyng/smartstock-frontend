@@ -1,7 +1,8 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { GerenciaService } from '../services/gerencia.service';
+import { GerenciaService, AlertaAuditoria } from '../services/gerencia.service';
 import { ApiService, CategoriaResponse } from '../../../core/services/api.service';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -26,20 +27,11 @@ interface Regla {
   activa: boolean | number;
 }
 
-interface Alerta {
-  id: number;
-  mensaje: string;
-  rolAsignado: string;
-  fechaLimite: string;
-  estado: string;
-  fechaCreacion: string;
-}
-
 @Component({
   selector: 'app-dashboard-control',
   standalone: true,
   imports: [
-    CommonModule, ReactiveFormsModule, MatCardModule, MatFormFieldModule, MatInputModule,
+    CommonModule, RouterLink, ReactiveFormsModule, MatCardModule, MatFormFieldModule, MatInputModule,
     MatButtonModule, MatIconModule, MatCheckboxModule, MatProgressSpinnerModule, MatTableModule,
     MatChipsModule, MatDividerModule, MatTooltipModule, MatSelectModule, SkeletonRowsComponent
   ],
@@ -58,11 +50,10 @@ export class DashboardControlComponent implements OnInit {
   categorias: CategoriaResponse[] = [];
   cargandoCategorias = false;
 
-  alertas: Alerta[] = [];
-  cargandoAlertas = false;
+  /** Solo las alertas vigentes en este momento (aún no resueltas), no el historial completo. */
+  alertas: AlertaAuditoria[] = [];
+  cargandoAlertas = true;
   mensajeErrorAlertas: string | null = null;
-  /** GET /alertas es exclusivo del rol REPONEDOR_SALA en el BFF; GERENTE_TIENDA no tiene acceso por diseño. */
-  alertasNoDisponibles = false;
 
   constructor(
     private fb: FormBuilder,
@@ -81,9 +72,26 @@ export class DashboardControlComponent implements OnInit {
   ngOnInit(): void {
     this.cargarReglas();
     this.cargarCategorias();
-    // GET /api/v1/bff/alertas es exclusivo del rol REPONEDOR_SALA en el BFF (por diseño);
-    // para GERENTE_TIENDA siempre resulta en 403, así que no se solicita.
-    this.alertasNoDisponibles = true;
+    this.cargarAlertas();
+  }
+
+  /** Solo alertas activas en este momento (aún no resueltas): PENDIENTE u OMITIDA. */
+  cargarAlertas(): void {
+    this.cargandoAlertas = true;
+    this.mensajeErrorAlertas = null;
+    this.gerenciaService.obtenerAuditoriaAlertas().subscribe({
+      next: (data) => {
+        this.alertas = (Array.isArray(data) ? data : [])
+          .filter(a => a.estadoAlerta === 'PENDIENTE' || a.estadoAlerta === 'OMITIDA');
+        this.cargandoAlertas = false;
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        this.mensajeErrorAlertas = err.error?.message ?? 'Error al cargar las alertas.';
+        this.cargandoAlertas = false;
+        this.cdr.markForCheck();
+      }
+    });
   }
 
   isInvalid(controlName: string): boolean {
