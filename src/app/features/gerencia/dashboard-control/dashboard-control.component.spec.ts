@@ -20,7 +20,9 @@ describe('DashboardControlComponent', () => {
     usuarioAsignadoNombre: 'Diego Silva',
     fechaLimiteAtencion: '2026-07-13T23:00:00',
     fechaAtencion: null,
-    descripcionAlerta: 'Próximo a vencer'
+    descripcionAlerta: 'Próximo a vencer',
+    fechaVencimientoLote: null,
+    loteVencido: false
   };
 
   beforeEach(async () => {
