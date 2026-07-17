@@ -131,8 +131,9 @@
             </mat-form-field>
             <mat-form-field appearance="outline" class="w-full">
               <mat-label>RUT Empresa</mat-label>
-              <input matInput type="text" formControlName="rutEmpresa" placeholder="Ej: 76.111.111-1" maxlength="12">
-              <mat-error *ngIf="isInvalidProveedor('rutEmpresa')">Campo obligatorio</mat-error>
+              <input matInput type="text" formControlName="rutEmpresa" appRutFormat placeholder="Ej: 76.111.111-1" maxlength="12">
+              <mat-error *ngIf="isInvalidProveedor('rutEmpresa') && proveedorForm.get('rutEmpresa')?.hasError('required')">Campo obligatorio</mat-error>
+              <mat-error *ngIf="isInvalidProveedor('rutEmpresa') && proveedorForm.get('rutEmpresa')?.hasError('rutInvalido')">El RUT ingresado no es válido.</mat-error>
             </mat-form-field>
             <mat-form-field appearance="outline" class="w-full">
               <mat-label>Email de Contacto</mat-label>

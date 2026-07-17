@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AdminService } from '../services/admin.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { rutValidator } from '../../../core/utils/rut.util';
+import { RutFormatDirective } from '../../../shared/directives/rut-format.directive';
 
 interface Comercio {
   id: number;
@@ -14,7 +16,7 @@ interface Comercio {
 @Component({
   selector: 'app-dashboard-admin',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, RutFormatDirective],
   templateUrl: './dashboard-admin.component.html'
 })
 export class DashboardAdminComponent implements OnInit {
@@ -36,8 +38,8 @@ export class DashboardAdminComponent implements OnInit {
     private cdr: ChangeDetectorRef
   ) {
     this.comercioForm = this.fb.group({
-      rutEmpresa: ['', [Validators.required, Validators.maxLength(12)]],
-      razonSocial: ['', [Validators.required, Validators.maxLength(150)]],
+      rutEmpresa: ['', [Validators.required, Validators.maxLength(12), rutValidator()]],
+      razonSocial: ['', [Validators.required, Validators.maxLength(100)]],
       rubro: ['', [Validators.required, Validators.maxLength(50)]]
     });
   }

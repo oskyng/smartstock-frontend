@@ -13,7 +13,9 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { rutValidator } from '../../core/utils/rut.util';
 import { SkeletonRowsComponent } from '../../shared/components/skeleton-rows/skeleton-rows.component';
+import { RutFormatDirective } from '../../shared/directives/rut-format.directive';
 
 interface Comercio {
   id: number;
@@ -28,7 +30,7 @@ interface Comercio {
   imports: [
     CommonModule, ReactiveFormsModule, MatCardModule, MatIconModule, MatTableModule,
     MatButtonModule, MatChipsModule, MatFormFieldModule, MatInputModule, MatSelectModule,
-    MatProgressSpinnerModule, MatTooltipModule, SkeletonRowsComponent
+    MatProgressSpinnerModule, MatTooltipModule, SkeletonRowsComponent, RutFormatDirective
   ],
   templateUrl: './admin-global.component.html'
 })
@@ -49,8 +51,8 @@ export class AdminGlobalComponent implements OnInit {
     private cdr: ChangeDetectorRef
   ) {
     this.comercioForm = this.fb.group({
-      rutEmpresa: ['', [Validators.required, Validators.maxLength(12)]],
-      razonSocial: ['', [Validators.required, Validators.maxLength(150)]],
+      rutEmpresa: ['', [Validators.required, Validators.maxLength(12), rutValidator()]],
+      razonSocial: ['', [Validators.required, Validators.maxLength(100)]],
       rubro: ['', [Validators.required, Validators.maxLength(50)]]
     });
   }

@@ -23,16 +23,18 @@
       <form [formGroup]="comercioForm" (ngSubmit)="registrarComercio()">
         <div style="margin-bottom: 16px;">
           <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #475569; margin-bottom: 6px; text-transform: uppercase;">Rut Empresa *</label>
-          <input formControlName="rutEmpresa" type="text" placeholder="Ej: 76.123.456-7" maxlength="12"
+          <input formControlName="rutEmpresa" appRutFormat type="text" placeholder="Ej: 76.123.456-7" maxlength="12"
             style="width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 0.875rem; box-sizing: border-box; outline: none;"
             [style.border-color]="comercioForm.get('rutEmpresa')?.invalid && comercioForm.get('rutEmpresa')?.touched ? '#dc2626' : '#cbd5e1'">
-          <div *ngIf="comercioForm.get('rutEmpresa')?.invalid && comercioForm.get('rutEmpresa')?.touched"
+          <div *ngIf="comercioForm.get('rutEmpresa')?.hasError('required') && comercioForm.get('rutEmpresa')?.touched"
             style="color: #dc2626; font-size: 0.75rem; margin-top: 4px;">Campo obligatorio.</div>
+          <div *ngIf="comercioForm.get('rutEmpresa')?.hasError('rutInvalido') && comercioForm.get('rutEmpresa')?.touched"
+            style="color: #dc2626; font-size: 0.75rem; margin-top: 4px;">El RUT ingresado no es válido.</div>
         </div>
 
         <div style="margin-bottom: 16px;">
           <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #475569; margin-bottom: 6px; text-transform: uppercase;">Razón Social *</label>
-          <input formControlName="razonSocial" type="text" placeholder="Ej: Supermercados del Sur S.A." maxlength="150"
+          <input formControlName="razonSocial" type="text" placeholder="Ej: Supermercados del Sur S.A." maxlength="100"
             style="width: 100%; padding: 10px 14px; border: 1px solid #cbd5e1; border-radius: 10px; font-size: 0.875rem; box-sizing: border-box; outline: none;"
             [style.border-color]="comercioForm.get('razonSocial')?.invalid && comercioForm.get('razonSocial')?.touched ? '#dc2626' : '#cbd5e1'">
           <div *ngIf="comercioForm.get('razonSocial')?.invalid && comercioForm.get('razonSocial')?.touched"
