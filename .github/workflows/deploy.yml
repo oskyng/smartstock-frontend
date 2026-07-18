@@ -53,15 +53,49 @@ jobs:
       # repo clonado: solo ese docker-compose.yml y las imágenes de Docker Hub. DEPLOY_HOST/
       # DEPLOY_USER/DEPLOY_SSH_KEY/DEPLOY_PATH deben configurarse en este repo con los mismos
       # valores que en smartstock-backend (mismo servidor, misma carpeta).
-      - name: Pull y recrear el contenedor frontend en el servidor
+      - name: Pull, recrear, health-check y rollback automático si falla
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           script: |
-            set -e
+            set +e
             cd "${{ secrets.DEPLOY_PATH }}"
+
+            cid=$(docker compose ps -q frontend)
+            OLD_IMAGE=""
+            if [ -n "$cid" ]; then
+              OLD_IMAGE=$(docker inspect --format='{{.Image}}' "$cid")
+            fi
+
             docker compose pull frontend
             docker compose up -d --no-deps --force-recreate frontend
+
+            ok=0
+            code="000"
+            for i in $(seq 1 20); do
+              sleep 3
+              code=$(curl -s -o /dev/null -w '%{http_code}' "http://localhost/")
+              if [ "$code" = "200" ]; then
+                ok=1
+                break
+              fi
+            done
+
+            if [ "$ok" = "1" ]; then
+              echo "OK: frontend saludable"
+              docker image prune -f
+            else
+              echo "FALLO: frontend no respondió saludable tras el deploy (último código HTTP: $code)"
+              if [ -n "$OLD_IMAGE" ]; then
+                docker tag "$OLD_IMAGE" "oskyng/smartstock-frontend:latest"
+                docker compose up -d --no-deps --force-recreate frontend
+                echo "Revertido: frontend -> $OLD_IMAGE"
+              else
+                echo "Sin imagen previa registrada para frontend: no se puede revertir automáticamente."
+              fi
+              docker image prune -f
+              exit 1
+            fi
             docker image prune -f
